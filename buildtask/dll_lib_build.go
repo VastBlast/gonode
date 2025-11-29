@@ -74,7 +74,12 @@ func buildToMSVCLib(cfgs config.Config, useVS bool, msvc32Vs bool) bool {
 	defFile := cfgs.Name + ".def"
 	targetLibName := cfgs.Name + ".dll"
 
-	outputDir := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "build"))
+	outputDir := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "prebuild"))
+	if !tools.Exists(filepath.Join(outputDir, defFile)) || !tools.Exists(filepath.Join(outputDir, targetLibName)) {
+		clog.Error("Missing def or dll file, please run \"gonode msvc\" build dll first.")
+		return false
+	}
+
 	paths := []string{
 		filepath.Join(outputDir, libFile),
 	}
