@@ -67,6 +67,7 @@ func (cli *CLI) Run(name string, version string) {
 	// gonacli msvc vs
 	msvcVs := msvcCmd.Bool("vs", false, "Use \"Microsoft Visual c++ Build tools\" or \"Visual Studio\"")
 	msvc32Vs := msvcCmd.Bool("32x", false, "VS 32-bit System OS")
+	msvcConfig := msvcCmd.String("config", "goaddon.json", "Addon api export configuration file")
 
 	switch os.Args[1] {
 	case "build":
@@ -140,7 +141,7 @@ func (cli *CLI) Run(name string, version string) {
 	}
 
 	if msvcCmd.Parsed() {
-		buildtask.RunMsvcTask(*makeConfig, *msvcVs, *msvc32Vs)
+		buildtask.RunMsvcTask(*msvcConfig, *msvcVs, *msvc32Vs)
 		return
 	}
 }

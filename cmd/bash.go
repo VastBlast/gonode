@@ -18,11 +18,13 @@ func runCommand(path, name string, arg string, execStr string) (msg string, err 
 	cmd.Stderr = &stderr
 	cmd.Dir = path
 	err = cmd.Run()
-	//clog.Info(cmd.Args)
-	msg = fmt.Sprintf("%s", err) + ": " + fmt.Sprintf("%s", stderr.String())
+	msg = out.String()
 	if err != nil {
+		msg += stderr.String()
+		if len(msg) == 0 {
+			msg = fmt.Sprintf("%v", err)
+		}
 		err = errors.New(msg)
 	}
-	//log.Println(out.String())
 	return
 }
