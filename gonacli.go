@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	Name    = "goncali"
+	Name    = "gonacli"
 	Version = "v1.0.10"
 )
 
