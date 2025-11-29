@@ -159,6 +159,32 @@ $ gonacli make
 $ gonacli make --args '--debug'
 ```
 
+### 6、clean
+
+清理配置中的输出目录（存在时）。
+
+``` shell
+$ gonacli clean
+
+# --config 参数指定配置文件
+$ gonacli clean --config demoaddon.json
+```
+
+### 7、all
+
+串联所有步骤：clean -> generate -> build -> install -> （仅 Windows）msvc -> make。
+
+``` shell
+$ gonacli all
+
+# --config 参数指定配置文件
+# --build-args 指定 go build 的参数
+# --make-args 指定 node-gyp build 的参数
+# --vs 在 Windows 下 msvc 步骤中使用 VS 的 lib.exe
+# --32x 在 Windows 下使用 VS 工具链编译 32 位
+$ gonacli all --config demoaddon.json --build-args '-ldflags "-s -w"' --make-args '--debug'
+```
+
 
 <br/>
 

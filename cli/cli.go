@@ -15,6 +15,8 @@ func printUsage() {
 
 	fmt.Println("\tversion -- Get version")
 	fmt.Println("\thelp -- Help")
+	fmt.Println("\tall -- Run clean, generate, build, install, (msvc on windows), make")
+	fmt.Println("\tclean -- Clean output directory")
 	fmt.Println("\tgenerate -- Generate napi c/c++ code of golang and addon bridge")
 	fmt.Println("\tbuild -- Compile the golang source file of the export api")
 	fmt.Println("\tinstall -- Install npm dependencies")
@@ -46,6 +48,10 @@ func (cli *CLI) Run(name string, version string) {
 	msvcCmd := flag.NewFlagSet("msvc", flag.ExitOnError)
 	// gonacli install
 	installCmd := flag.NewFlagSet("install", flag.ExitOnError)
+	// gonacli clean
+	cleanCmd := flag.NewFlagSet("clean", flag.ExitOnError)
+	// gonacli all
+	allCmd := flag.NewFlagSet("all", flag.ExitOnError)
 
 	// gonacli build --config xxx.json
 	buildCofig := buildCmd.String("config", "goaddon.json", "Addon api export configuration file")
@@ -68,6 +74,14 @@ func (cli *CLI) Run(name string, version string) {
 	msvcVs := msvcCmd.Bool("vs", false, "Use \"Microsoft Visual c++ Build tools\" or \"Visual Studio\"")
 	msvc32Vs := msvcCmd.Bool("32x", false, "VS 32-bit System OS")
 	msvcConfig := msvcCmd.String("config", "goaddon.json", "Addon api export configuration file")
+	// gonacli clean --config xxx.json
+	cleanConfig := cleanCmd.String("config", "goaddon.json", "Addon api export configuration file")
+	// gonacli all
+	allConfig := allCmd.String("config", "goaddon.json", "Addon api export configuration file")
+	allBuildArg := allCmd.String("build-args", "-ldflags \"-s -w\"", "Golang compilation arguments")
+	allMakeArg := allCmd.String("make-args", "", "Nodegyp compilation arguments")
+	allVs := allCmd.Bool("vs", false, "Use \"Microsoft Visual c++ Build tools\" or \"Visual Studio\" when running msvc on windows")
+	all32Vs := allCmd.Bool("32x", false, "VS 32-bit System OS")
 
 	switch os.Args[1] {
 	case "build":
@@ -105,6 +119,16 @@ func (cli *CLI) Run(name string, version string) {
 		if err != nil {
 			log.Panic(err)
 		}
+	case "clean":
+		err := cleanCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "all":
+		err := allCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	default:
 		printUsage()
 		os.Exit(1)
@@ -121,27 +145,51 @@ func (cli *CLI) Run(name string, version string) {
 	}
 
 	if buildCmd.Parsed() {
-		buildtask.RunBuildTask(*buildCofig, *buildArg)
+		if ok := buildtask.RunBuildTask(*buildCofig, *buildArg); !ok {
+			os.Exit(1)
+		}
 		return
 	}
 
 	if generateCmd.Parsed() {
-		buildtask.RunGenerateTask(*generateConfig)
+		if ok := buildtask.RunGenerateTask(*generateConfig); !ok {
+			os.Exit(1)
+		}
 		return
 	}
 
 	if installCmd.Parsed() {
-		buildtask.RunInstallTask(*installConfig)
+		if ok := buildtask.RunInstallTask(*installConfig); !ok {
+			os.Exit(1)
+		}
 		return
 	}
 
 	if makeCmd.Parsed() {
-		buildtask.RunMakeTask(*makeConfig, *makeArg)
+		if ok := buildtask.RunMakeTask(*makeConfig, *makeArg); !ok {
+			os.Exit(1)
+		}
 		return
 	}
 
 	if msvcCmd.Parsed() {
-		buildtask.RunMsvcTask(*msvcConfig, *msvcVs, *msvc32Vs)
+		if ok := buildtask.RunMsvcTask(*msvcConfig, *msvcVs, *msvc32Vs); !ok {
+			os.Exit(1)
+		}
+		return
+	}
+
+	if cleanCmd.Parsed() {
+		if ok := buildtask.RunCleanTask(*cleanConfig); !ok {
+			os.Exit(1)
+		}
+		return
+	}
+
+	if allCmd.Parsed() {
+		if ok := buildtask.RunAllTask(*allConfig, *allBuildArg, *allMakeArg, *allVs, *all32Vs); !ok {
+			os.Exit(1)
+		}
 		return
 	}
 }

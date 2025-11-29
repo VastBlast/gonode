@@ -36,6 +36,33 @@ func parseConfig(config string) bool {
 	return true
 }
 
+func parseAndCheck(config string) bool {
+	if ok := parseConfig(config); !ok {
+		return false
+	}
+
+	if c := checkConfigure(cfgs); !c {
+		return false
+	}
+
+	return true
+}
+
+func normalizeArgs(args string) string {
+	if len(args) == 0 {
+		return args
+	}
+
+	if strings.HasPrefix(args, "'") || strings.HasPrefix(args, "\"") {
+		args = args[1:]
+		if strings.HasSuffix(args, "'") || strings.HasSuffix(args, "\"") {
+			args = args[:len(args)-1]
+		}
+	}
+
+	return args
+}
+
 func checkConfigure(c config.Config) bool {
 	// 检查配置文件
 	if err := check.CheckBaseConfig(c); err != nil {
@@ -55,156 +82,183 @@ func checkConfigure(c config.Config) bool {
 
 // 编译 golang lib 文件
 // gonacli build => go build -buildmode c-archive -o xxx.a xxx.go xxx1.go xxx2.go ...
-func RunBuildTask(config string, args string) {
+func RunBuildTask(config string, args string) bool {
+	if ok := parseAndCheck(config); !ok {
+		return false
+	}
+
+	return runBuildStep(args)
+}
+
+// Clean output directory
+func RunCleanTask(config string) bool {
 	if ok := parseConfig(config); !ok {
-		return
+		return false
 	}
 
-	// 检测配置文件
-	if c := checkConfigure(cfgs); !c {
-		return
+	if done := cleanOutput(cfgs); !done {
+		clog.Error("Fail clean output directory!")
+		return false
 	}
 
-	if len(args) > 0 {
-		// 删除 args 两边 ' 或 "
-		if strings.Index(args, "'") == 0 || strings.Index(args, "\"") == 0 {
-			args = args[1:]
-			if strings.LastIndex(args, "'") == len(args)-1 {
-				args = args[:len(args)-1]
-			}
-		} else if strings.Index(args, "\"") == 0 {
-			args = args[1:]
-			if strings.LastIndex(args, "\"") == len(args)-1 {
-				args = args[:len(args)-1]
-			}
+	clog.Success("Successfully cleaned output directory ~")
+	fmt.Println("")
+	return true
+}
+
+// 生成 bridge c/c++ 代码
+func RunGenerateTask(config string) bool {
+	if ok := parseAndCheck(config); !ok {
+		return false
+	}
+
+	return runGenerateStep()
+}
+
+// 初始化 npm install xxxx
+func RunInstallTask(config string) bool {
+	if ok := parseAndCheck(config); !ok {
+		return false
+	}
+
+	return runInstallStep()
+}
+
+// 编译 node addon
+func RunMakeTask(config string, args string) bool {
+	if ok := parseAndCheck(config); !ok {
+		return false
+	}
+
+	return runMakeStep(args)
+}
+
+// Run all steps: clean -> generate -> build -> install -> (windows only) msvc -> make
+func RunAllTask(config string, buildArgs string, makeArgs string, useVS bool, msvc32Vs bool) bool {
+	if ok := parseAndCheck(config); !ok {
+		return false
+	}
+
+	buildArgs = normalizeArgs(buildArgs)
+	makeArgs = normalizeArgs(makeArgs)
+
+	if done := cleanOutput(cfgs); !done {
+		clog.Error("Fail clean output directory!")
+		return false
+	}
+
+	if ok := runGenerateStep(); !ok {
+		return false
+	}
+
+	if ok := runBuildStep(buildArgs); !ok {
+		return false
+	}
+
+	if ok := runInstallStep(); !ok {
+		return false
+	}
+
+	if tools.IsWindowsOs() {
+		if ok := runMsvcStep(useVS, msvc32Vs); !ok {
+			return false
 		}
+	} else {
+		clog.Info("Skip msvc step on non-windows platform")
 	}
 
-	// 生成 golang lib
+	if ok := runMakeStep(makeArgs); !ok {
+		return false
+	}
+
+	clog.Success("Successfully completed all tasks ~")
+	fmt.Println("")
+	return true
+}
+
+// window 环境下兼容处理
+func RunMsvcTask(config string, useVS bool, msvc32Vs bool) bool {
+	if ok := parseAndCheck(config); !ok {
+		return false
+	}
+
+	return runMsvcStep(useVS, msvc32Vs)
+}
+
+func runGenerateStep() bool {
+	if done := generateAddonBridge(cfgs); !done {
+		clog.Error("Fail generated bridge code!")
+		return false
+	}
+
+	clog.Success("Successfully generate the Addon bridge c/c++ code of Nodejs ~")
+	fmt.Println("")
+	return true
+}
+
+func runBuildStep(args string) bool {
+	args = normalizeArgs(args)
+
 	if d := buildGoToLibrary(cfgs, args); !d {
 		clog.Error("Fail build golang lib!")
-		return
+		return false
 	}
 
 	clog.Success("Successfully build golang lib ~")
 	fmt.Println("")
+	return true
 }
 
-// 生成 bridge c/c++ 代码
-func RunGenerateTask(config string) {
-	if ok := parseConfig(config); !ok {
-		return
-	}
-
-	// 检测配置文件
-	if c := checkConfigure(cfgs); !c {
-		return
-	}
-
-	if done := generateAddonBridge(cfgs); !done {
-		clog.Error("Fail generated bridge code!")
-		return
-	}
-
-	clog.Success("Successfully generate the Addon bridge c/c++ code of Nodejs ~")
-	//clog.Info("Please execute the following command to make the addon of nodejs ~")
-	//clog.Info(fmt.Sprintf("> cd %s && gonacli make --config xxx.json", cfgs.OutPut))
-	//clog.Info(fmt.Sprintf("or > cd %s && node-gyp configure && node-gyp build", cfgs.OutPut))
-	//clog.Info(fmt.Sprintf("or > cd %s && npm install && npm run build", cfgs.OutPut))
-	fmt.Println("")
-}
-
-// 初始化 npm install xxxx
-func RunInstallTask(config string) {
-	if ok := parseConfig(config); !ok {
-		return
-	}
-
-	// 检测配置文件
-	if c := checkConfigure(cfgs); !c {
-		return
-	}
-
-	// 生成扩展
+func runInstallStep() bool {
 	if done := installDep(cfgs); !done {
 		clog.Error("Fail installed!")
-		return
+		return false
 	}
 
 	clog.Success("Successfully installed ~")
 	fmt.Println("")
+	return true
 }
 
-// 编译 node addon
-func RunMakeTask(config string, args string) {
-	if ok := parseConfig(config); !ok {
-		return
-	}
+func runMakeStep(args string) bool {
+	args = normalizeArgs(args)
 
-	// 检测配置文件
-	if c := checkConfigure(cfgs); !c {
-		return
-	}
-
-	if len(args) > 0 {
-		// 删除 args 两边 ' 或 "
-		if strings.Index(args, "'") == 0 || strings.Index(args, "\"") == 0 {
-			args = args[1:]
-			if strings.LastIndex(args, "'") == len(args)-1 {
-				args = args[:len(args)-1]
-			}
-		} else if strings.Index(args, "\"") == 0 {
-			args = args[1:]
-			if strings.LastIndex(args, "\"") == len(args)-1 {
-				args = args[:len(args)-1]
-			}
-		}
-	}
-
-	// 生成扩展
 	if done := makeToAddon(cfgs, args); !done {
 		clog.Error("Fail make addon!")
-		return
+		return false
 	}
 
 	clog.Success("Successfully make the addon of Nodejs ~")
 	fmt.Println("")
+	return true
 }
 
-// window 环境下兼容处理
-func RunMsvcTask(config string, useVS bool, msvc32Vs bool) {
-	if ok := parseConfig(config); !ok {
-		return
+func runMsvcStep(useVS bool, msvc32Vs bool) bool {
+	if !tools.IsWindowsOs() {
+		clog.Error("The \"msvc\" command is only supported on Windows.")
+		return false
 	}
 
-	// 检测配置文件
-	if c := checkConfigure(cfgs); !c {
-		return
-	}
-
-	// 修复兼容 MSVC
 	clog.Info("Staring fix file ...")
-	if tools.IsWindowsOs() {
-		compatible.FixCGOWithWindow(cfgs)
-	}
+	compatible.FixCGOWithWindow(cfgs)
 	clog.Info("Fix file done ~")
 
-	// 生成dll
 	clog.Info("Staring build dll ...")
 	if done := buildToDll(cfgs); !done {
 		clog.Error("Fail build dll!")
-		return
+		return false
 	}
 	clog.Success("Successfully build dll ~")
 	fmt.Println("")
 
-	// 生成 lib
 	clog.Info("Staring build lib ...")
 	if done := buildToMSVCLib(cfgs, useVS, msvc32Vs); !done {
 		clog.Error("Fail build lib!")
-		return
+		return false
 	}
 
 	clog.Success("Successfully build lib ~")
 	fmt.Println("")
+
+	return true
 }

@@ -154,6 +154,32 @@ Before using the "--npm-i" arg, ensure that the system has installed the npm pac
 $ gonacli make --args '--debug'
 ```
 
+### 6. clean
+
+Clean the configured output directory when it exists.
+
+``` shell
+$ gonacli clean
+
+# --config: Specify Profile
+$ gonacli clean --config demoaddon.json
+```
+
+### 7. all
+
+Run the full pipeline: clean -> generate -> build -> install -> (Windows only) msvc -> make.
+
+``` shell
+$ gonacli all
+
+# --config: Specify Profile
+# --build-args: Args for go build
+# --make-args: Args for node-gyp build
+# --vs: Use VS \"lib.exe\" during msvc (Windows only)
+# --32x: Build 32-bit library with VS toolchain (Windows only)
+$ gonacli all --config demoaddon.json --build-args '-ldflags "-s -w"' --make-args '--debug'
+```
+
 <br/>
 
 ## Use Golang to develop an Demo of NodeJS Addon
