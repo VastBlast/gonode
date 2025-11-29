@@ -49,6 +49,7 @@ func genStringSplitCode() string {
 // ------------- genStringSplit -----------
 void wg_string_split(const string& str, const char split, vector<string>& res){
   if (str.empty()) return;
+  res.reserve(res.size() + str.size() / 2 + 1);
   size_t start = 0;
   size_t pos = str.find(split, start);
   while (pos != string::npos){
@@ -64,21 +65,26 @@ func genArrayToStringCode() string {
 	return `
 // ------------- genStringToArray2 -----------
 string wg_array_to_string(Array arr) {
-  string res = "[";
-  for(uint32_t i = 0; i < arr.Length(); i++){
-    if (i > 0) {
-      res += ",";
-    }
-    Value v = arr[i];
-    if (v.IsArray()){
-      Array arr2 = v.As<Array>();
-      res += wg_array_to_string(arr2); 
-    } else { 
-      string ss = v.ToString();
-      res += "\"" + ss + "\""; 
-    }
+  const uint32_t len = arr.Length();
+  string res;
+  res.reserve(len * 4 + 2);
+  res.push_back('[');
+  for(uint32_t i = 0; i < len; i++){
+	if (i > 0) {
+	  res.push_back(',');
+	}
+	Value v = arr[i];
+	if (v.IsArray()){
+	  Array arr2 = v.As<Array>();
+	  res += wg_array_to_string(arr2);
+	} else {
+	  string ss = v.ToString();
+	  res.push_back('"');
+	  res += ss;
+	  res.push_back('"');
+	}
   }
-  res += "]";
+  res.push_back(']');
   return res;
 }`
 }
@@ -89,6 +95,7 @@ func genStringToArrayCode() string {
 Array wg_string_to_array(string str, Env env) {
   Array arr = Array::New(env);
   vector<string> strList;
+  strList.reserve(str.size() / 2 + 1);
   if (str == "") return arr;
   for (char &c : str) {
     if (c == '[' || c == ']') {
@@ -103,7 +110,7 @@ Array wg_string_to_array(string str, Env env) {
       s = s.substr(_spos + 1);
       int _epos = s.find("\"");
       s = s.substr(0, _epos);
-      arr.Set(Number::New(env, index), String::New(env, s));
+      arr.Set(index, String::New(env, s));
       index++;
     }
   }
@@ -116,24 +123,29 @@ func genObjectArrToStringCode() string {
 // ------------- genObjectArrToString -----------
 string wg_object_to_string(Object objs);
 string wg_object_array_to_string(Array arr) {
-  string res = "[";
-  for(uint32_t i = 0; i < arr.Length(); i++){
-    if (i > 0) {
-      res += ",";
-    }
-    Value v = arr[i];
-    if (v.IsArray()){
-      Array arr2 = v.As<Array>();
-      res += wg_object_array_to_string(arr2);
-    } else if (v.IsObject()){
-      Object obj2 = v.As<Object>();
-      res += wg_object_to_string(obj2); 
-    } else {
-      string ss = v.ToString();
-      res += "\"" + ss + "\""; 
-    }
+  const uint32_t len = arr.Length();
+  string res;
+  res.reserve(len * 6 + 2);
+  res.push_back('[');
+  for(uint32_t i = 0; i < len; i++){
+	if (i > 0) {
+	  res.push_back(',');
+	}
+	Value v = arr[i];
+	if (v.IsArray()){
+	  Array arr2 = v.As<Array>();
+	  res += wg_object_array_to_string(arr2);
+	} else if (v.IsObject()){
+	  Object obj2 = v.As<Object>();
+	  res += wg_object_to_string(obj2); 
+	} else {
+	  string ss = v.ToString();
+	  res.push_back('"');
+	  res += ss;
+	  res.push_back('"');
+	}
   }
-  res += "]";
+  res.push_back(']');
   return res;
 }`
 }
@@ -142,28 +154,35 @@ func genObjectToStringCode() string {
 	return `
 // ------------- genObjectToString -----------
 string wg_object_to_string(Object objs) {
-  string res = "{";
   Array keyArr = objs.GetPropertyNames();
-  for(uint32_t i = 0; i < keyArr.Length(); i++){
-    if (i > 0) {
-      res += ",";
-    }
-    Value key = keyArr[i];
-    Value v = objs.Get(key);
-    string name = key.As<String>().Utf8Value();
-    res += "\"" + name + "\":";
-    if (v.IsArray()) {
-      Array arr = v.As<Array>();
-      res += wg_object_array_to_string(arr);
-    } else if (v.IsObject()){
-      Object obj2 = v.As<Object>();
-      res += wg_object_to_string(obj2); 
-    } else {
-      string ss = v.ToString();
-      res += "\"" + ss + "\""; 
-    }
+  const uint32_t len = keyArr.Length();
+  string res;
+  res.reserve(len * 8 + 2);
+  res.push_back('{');
+  for(uint32_t i = 0; i < len; i++){
+	if (i > 0) {
+	  res.push_back(',');
+	}
+	Value key = keyArr[i];
+	Value v = objs.Get(key);
+	string name = key.As<String>().Utf8Value();
+	res.push_back('"');
+	res += name;
+	res += "\":";
+	if (v.IsArray()) {
+	  Array arr = v.As<Array>();
+	  res += wg_object_array_to_string(arr);
+	} else if (v.IsObject()){
+	  Object obj2 = v.As<Object>();
+	  res += wg_object_to_string(obj2); 
+	} else {
+	  string ss = v.ToString();
+	  res.push_back('"');
+	  res += ss;
+	  res.push_back('"');
+	}
   }
-  res += "}";
+  res.push_back('}');
   return res;
 }`
 }
@@ -171,9 +190,10 @@ string wg_object_to_string(Object objs) {
 func genStringToObject() string {
 	code := `
 // ------------- genStringToObject -----------
-Object wg_string_to_object(string str, Env env) {
+ Object wg_string_to_object(string str, Env env) {
   Object obj = Object::New(env);
   vector<string> strList;
+  strList.reserve(str.size() / 2 + 1);
   if (str == "") return obj;
   for (char &c : str) {
     if (c == '{' || c == '}') {
@@ -181,16 +201,18 @@ Object wg_string_to_object(string str, Env env) {
     }
   }  
   wg_string_split(str, ',', strList);
+  vector<string> keyValue;
+  keyValue.reserve(2);
   for (auto s : strList) {
     size_t pos;
     if (s.size() > 0) {
       while ((pos = s.find("\"")) != string::npos) {
         s.replace(pos, 1, "");
       }
-      vector<string> keyValue;
+      keyValue.clear();
       wg_string_split(s, ':', keyValue);
-      string key = keyValue.size() >= 0 ? keyValue[0] : "";
-      string value = keyValue.size() >= 1 ? keyValue[1] : "";
+      string key = !keyValue.empty() ? keyValue[0] : "";
+      string value = keyValue.size() > 1 ? keyValue[1] : "";
       obj.Set(String::New(env, key), String::New(env, value));
     }
   }
