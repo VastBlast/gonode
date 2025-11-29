@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/wenlng/gonacli/clog"
-	"github.com/wenlng/gonacli/cmd"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/clog"
+	"github.com/VastBlast/gonode/cmd"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/tools"
 )
 
 func makeToAddon(cfgs config.Config, args string) bool {
@@ -29,32 +29,32 @@ func makeToAddon(cfgs config.Config, args string) bool {
 		return true
 	}
 
-	// Check whether "gonacli generate" has been run
+	// Check whether "gonode generate" has been run
 	if !tools.Exists(filepath.Join(rootPath, cfgs.Name+".cc")) {
-		clog.Error("You need to run \"gonacli generate\" generate c/c++ bridge code.")
+		clog.Error("You need to run \"gonode generate\" generate c/c++ bridge code.")
 		return false
 	}
 
-	// Check whether "gonacli build" has been run
+	// Check whether "gonode build" has been run
 	if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".a")) {
-		clog.Error("You need to run \"gonacli build\" build golang lib.")
+		clog.Error("You need to run \"gonode build\" build golang lib.")
 		return false
 	}
 
-	// Check whether "gonacli install" has been run
+	// Check whether "gonode install" has been run
 	if !tools.Exists(filepath.Join(rootPath, "node_modules")) {
-		clog.Error("You need to run \"gonacli install\" install dependencies.")
+		clog.Error("You need to run \"gonode install\" install dependencies.")
 		return false
 	}
 
-	// On Windows, verify whether "gonacli msvc" has been run
+	// On Windows, verify whether "gonode msvc" has been run
 	if tools.IsWindowsOs() {
 		if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".lib")) {
-			clog.Error("You need to run \"gonacli msvc\" build lib on windows OS.")
+			clog.Error("You need to run \"gonode msvc\" build lib on windows OS.")
 			return false
 		}
 		if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".dll")) {
-			clog.Error("You need to run \"gonacli msvc\" build dll on windows OS.")
+			clog.Error("You need to run \"gonode msvc\" build dll on windows OS.")
 			return false
 		}
 	}
@@ -118,7 +118,7 @@ func hasExistingBuild(targetDir string) bool {
 func moveDllNearNodeBinary(prebuildPath string, name string, buildOutputPath string) bool {
 	dllPath := filepath.Join(prebuildPath, name+".dll")
 	if !tools.Exists(dllPath) {
-		clog.Error("The dll file is missing, please execute \"gonacli msvc\" first.")
+		clog.Error("The dll file is missing, please execute \"gonode msvc\" first.")
 		return false
 	}
 

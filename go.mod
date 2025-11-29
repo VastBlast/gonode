@@ -1,4 +1,4 @@
-module github.com/wenlng/gonacli
+module github.com/VastBlast/gonode
 
 go 1.16
 

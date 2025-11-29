@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/wenlng/gonacli/cli"
+	"github.com/VastBlast/gonode/cli"
 )
 
 const (
-	Name    = "gonacli"
+	Name    = "gonode"
 	Version = "v1.0.10"
 )
 

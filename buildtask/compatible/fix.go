@@ -2,8 +2,8 @@ package compatible
 
 import (
 	"bufio"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/tools"
 	"io"
 	"os"
 	"path/filepath"

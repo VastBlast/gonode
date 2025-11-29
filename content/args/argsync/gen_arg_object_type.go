@@ -1,7 +1,7 @@
 package argsync
 
 import (
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/tools"
 )
 
 func GenObjectArgTypeCode(name string, index string) (string, string) {

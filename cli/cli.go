@@ -3,7 +3,7 @@ package cli
 import (
 	"flag"
 	"fmt"
-	"github.com/wenlng/gonacli/buildtask"
+	"github.com/VastBlast/gonode/buildtask"
 	"log"
 	"os"
 )
@@ -34,49 +34,49 @@ func isValidArgs() {
 func (cli *CLI) Run(name string, version string) {
 	isValidArgs()
 
-	// gonacli build
+	// gonode build
 	buildCmd := flag.NewFlagSet("build", flag.ExitOnError)
-	// gonacli generate
+	// gonode generate
 	generateCmd := flag.NewFlagSet("generate", flag.ExitOnError)
-	// gonacli make
+	// gonode make
 	makeCmd := flag.NewFlagSet("make", flag.ExitOnError)
-	// gonacli version
+	// gonode version
 	versionCmd := flag.NewFlagSet("version", flag.ExitOnError)
-	// gonacli help
+	// gonode help
 	helpCmd := flag.NewFlagSet("help", flag.ExitOnError)
-	// gonacli msvc
+	// gonode msvc
 	msvcCmd := flag.NewFlagSet("msvc", flag.ExitOnError)
-	// gonacli install
+	// gonode install
 	installCmd := flag.NewFlagSet("install", flag.ExitOnError)
-	// gonacli clean
+	// gonode clean
 	cleanCmd := flag.NewFlagSet("clean", flag.ExitOnError)
-	// gonacli all
+	// gonode all
 	allCmd := flag.NewFlagSet("all", flag.ExitOnError)
 
-	// gonacli build --config xxx.json
+	// gonode build --config xxx.json
 	buildCofig := buildCmd.String("config", "goaddon.json", "Addon api export configuration file")
-	// gonacli build --args '-ldflags "-s -w"'
+	// gonode build --args '-ldflags "-s -w"'
 	buildArg := buildCmd.String("args", "-ldflags \"-s -w\"", "Golang compilation arguments")
-	// gonacli build --upx
+	// gonode build --upx
 	//buildUpx := buildCmd.Bool("upx", false, "Call the upx compression command")
-	// gonacli build --xgo
+	// gonode build --xgo
 	//buildXgo := buildCmd.Bool("xgo", false, "Call the xgo compression command")
-	// gonacli generate --config xxx.json
+	// gonode generate --config xxx.json
 	generateConfig := generateCmd.String("config", "goaddon.json", "Addon api export configuration file")
-	// gonacli make --args "xxx"
+	// gonode make --args "xxx"
 	makeArg := makeCmd.String("args", "", "Nodegyp compilation arguments")
-	// gonacli make --config xxx.json
+	// gonode make --config xxx.json
 	makeConfig := makeCmd.String("config", "goaddon.json", "Addon api export configuration file")
 	//makeMpn := makeCmd.Bool("npm-i", false, "Install npm dependencies")
-	// gonacli install --config xxx.json
+	// gonode install --config xxx.json
 	installConfig := installCmd.String("config", "goaddon.json", "Addon api export configuration file")
-	// gonacli msvc vs
+	// gonode msvc vs
 	msvcVs := msvcCmd.Bool("vs", false, "Use \"Microsoft Visual c++ Build tools\" or \"Visual Studio\"")
 	msvc32Vs := msvcCmd.Bool("32x", false, "VS 32-bit System OS")
 	msvcConfig := msvcCmd.String("config", "goaddon.json", "Addon api export configuration file")
-	// gonacli clean --config xxx.json
+	// gonode clean --config xxx.json
 	cleanConfig := cleanCmd.String("config", "goaddon.json", "Addon api export configuration file")
-	// gonacli all
+	// gonode all
 	allConfig := allCmd.String("config", "goaddon.json", "Addon api export configuration file")
 	allBuildArg := allCmd.String("build-args", "-ldflags \"-s -w\"", "Golang compilation arguments")
 	allMakeArg := allCmd.String("make-args", "", "Nodegyp compilation arguments")

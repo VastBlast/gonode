@@ -3,10 +3,10 @@ package buildtask
 import (
 	"path/filepath"
 
-	"github.com/wenlng/gonacli/binding"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/content"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/binding"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/content"
+	"github.com/VastBlast/gonode/tools"
 )
 
 func generateAddonBridge(cfgs config.Config) bool {
