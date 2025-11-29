@@ -1,6 +1,7 @@
 package buildtask
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -16,6 +17,17 @@ func makeToAddon(cfgs config.Config, args string) bool {
 	rootPath := tools.FormatDirPath(cfgs.OutPut)
 	goBuildPath := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "prebuild"))
 	buildOutputPath := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "build"))
+	platformId, err := getPlatformIdentifier(rootPath)
+	if err != nil {
+		clog.Error(err)
+		return false
+	}
+	targetDir := filepath.Join(rootPath, "prebuilds", platformId)
+
+	if hasExistingBuild(targetDir) {
+		clog.Info("Existing build detected for platform, skip rebuild.")
+		return true
+	}
 
 	// Check whether "gonacli generate" has been run
 	if !tools.Exists(filepath.Join(rootPath, cfgs.Name+".cc")) {
@@ -72,9 +84,35 @@ func makeToAddon(cfgs config.Config, args string) bool {
 		}
 	}
 
+	if err := copyBuiltArtifacts(goBuildPath, buildOutputPath, targetDir, cfgs.Name); err != nil {
+		clog.Error(err)
+		return false
+	}
+
 	_ = os.RemoveAll(goBuildPath)
+	_ = os.RemoveAll(buildOutputPath)
 
 	return true
+}
+
+func getPlatformIdentifier(rootPath string) (string, error) {
+	cmdStr := `node -e "process.stdout.write(require('./platform').platformIdentifier())"`
+	out, err := cmd.RunCommand(rootPath, cmdStr)
+	if err != nil {
+		return "", fmt.Errorf("failed to get platform identifier via node: %v", err)
+	}
+	if len(out) == 0 {
+		return "", fmt.Errorf("empty platform identifier from node")
+	}
+	return out, nil
+}
+
+func hasExistingBuild(targetDir string) bool {
+	matches, err := filepath.Glob(filepath.Join(targetDir, "*.node"))
+	if err != nil {
+		return false
+	}
+	return len(matches) > 0
 }
 
 func moveDllNearNodeBinary(prebuildPath string, name string, buildOutputPath string) bool {
@@ -104,6 +142,46 @@ func moveDllNearNodeBinary(prebuildPath string, name string, buildOutputPath str
 	}
 
 	return true
+}
+
+func copyBuiltArtifacts(goBuildPath string, buildOutputPath string, targetDir string, name string) error {
+	if err := tools.EnsureDir(targetDir); err != nil {
+		return err
+	}
+
+	nodeDirs := []string{
+		filepath.Join(buildOutputPath, "Release"),
+		filepath.Join(buildOutputPath, "Debug"),
+	}
+
+	for _, dir := range nodeDirs {
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, f := range files {
+			if f.IsDir() {
+				continue
+			}
+			if filepath.Ext(f.Name()) == ".node" {
+				src := filepath.Join(dir, f.Name())
+				dst := filepath.Join(targetDir, f.Name())
+				if copyErr := tools.CopyFile(src, dst); copyErr != nil {
+					return copyErr
+				}
+			}
+		}
+	}
+
+	dllPath := filepath.Join(goBuildPath, name+".dll")
+	if tools.Exists(dllPath) {
+		dst := filepath.Join(targetDir, name+".dll")
+		if err := tools.CopyFile(dllPath, dst); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func copyFile(src string, dst string) error {
