@@ -25,6 +25,16 @@ func GenGypFile(cfgs config.Config, bindingName string) bool {
             "libraries": [
                 "../` + cfgs.Name + ext + `"
             ],
+            "conditions": [
+                [ 'OS=="win"', {
+                    "copies": [
+                        {
+                            "files": [ "<(module_root_dir)/` + cfgs.Name + `.dll" ],
+                            "destination": "<(PRODUCT_DIR)"
+                        }
+                    ]
+                }]
+            ]
         }
     ]
 }`
