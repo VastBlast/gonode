@@ -46,10 +46,10 @@ func cleanOutput(cfgs config.Config) bool {
 	}
 	if len(files) == 0 {
 		if err := os.Remove(outputDir); err != nil {
-			clog.Error(err)
-			return false
+			clog.Warning("Output directory is empty but could not be removed:", err)
+		} else {
+			clog.Info("Output directory removed because it was empty.")
 		}
-		clog.Info("Output directory removed because it was empty.")
 	}
 
 	return true
