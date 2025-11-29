@@ -48,15 +48,15 @@ func genStringSplitCode() string {
 	return `
 // ------------- genStringSplit -----------
 void wg_string_split(const string& str, const char split, vector<string>& res){
-  if (str == "") return;
-  string strs = str + split;
-  size_t pos = strs.find(split);
-  while (pos != strs.npos){
-	string temp = strs.substr(0, pos);
-	res.push_back(temp);
-	strs = strs.substr(pos + 1, strs.size());
-	pos = strs.find(split);
+  if (str.empty()) return;
+  size_t start = 0;
+  size_t pos = str.find(split, start);
+  while (pos != string::npos){
+	res.emplace_back(str.substr(start, pos - start));
+	start = pos + 1;
+	pos = str.find(split, start);
   }
+  res.emplace_back(str.substr(start));
 }`
 }
 
@@ -65,21 +65,17 @@ func genArrayToStringCode() string {
 // ------------- genStringToArray2 -----------
 string wg_array_to_string(Array arr) {
   string res = "[";
-  string last;
   for(uint32_t i = 0; i < arr.Length(); i++){
-    Value v = arr[i];
-    if (last.size() > 0) {
-      res += last;
-      last = "";
+    if (i > 0) {
+      res += ",";
     }
+    Value v = arr[i];
     if (v.IsArray()){
       Array arr2 = v.As<Array>();
-      res += wg_array_to_string(arr2);
-      last = ",";
-    } else {
+      res += wg_array_to_string(arr2); 
+    } else { 
       string ss = v.ToString();
-      res += "\"" + ss + "\"";
-      last = ",";
+      res += "\"" + ss + "\""; 
     }
   }
   res += "]";
@@ -94,13 +90,11 @@ Array wg_string_to_array(string str, Env env) {
   Array arr = Array::New(env);
   vector<string> strList;
   if (str == "") return arr;
-  size_t pos;
-  while ((pos = str.find("[")) != string::npos) {
-	str.replace(pos, 1, ",");
-  }
-  while ((pos = str.find("]")) != string::npos) {
-    str.replace(pos, 1, ",");
-  }
+  for (char &c : str) {
+    if (c == '[' || c == ']') {
+      c = ',';
+    }
+  }  
   wg_string_split(str, ',', strList);
   int index = 0;
   for (auto s : strList) {
@@ -123,25 +117,20 @@ func genObjectArrToStringCode() string {
 string wg_object_to_string(Object objs);
 string wg_object_array_to_string(Array arr) {
   string res = "[";
-  string last;
   for(uint32_t i = 0; i < arr.Length(); i++){
-    Value v = arr[i];
-    if (last.size() > 0) {
-      res += last;
-      last = "";
+    if (i > 0) {
+      res += ",";
     }
+    Value v = arr[i];
     if (v.IsArray()){
       Array arr2 = v.As<Array>();
       res += wg_object_array_to_string(arr2);
-      last = ",";
     } else if (v.IsObject()){
       Object obj2 = v.As<Object>();
-      res += wg_object_to_string(obj2);
-      last = ",";
+      res += wg_object_to_string(obj2); 
     } else {
       string ss = v.ToString();
-      res += "\"" + ss + "\"";
-      last = ",";
+      res += "\"" + ss + "\""; 
     }
   }
   res += "]";
@@ -155,28 +144,23 @@ func genObjectToStringCode() string {
 string wg_object_to_string(Object objs) {
   string res = "{";
   Array keyArr = objs.GetPropertyNames();
-  string last;
   for(uint32_t i = 0; i < keyArr.Length(); i++){
+    if (i > 0) {
+      res += ",";
+    }
     Value key = keyArr[i];
     Value v = objs.Get(key);
     string name = key.As<String>().Utf8Value();
-    if (last.size() > 0) {
-      res += last;
-      last = "";
-    }
     res += "\"" + name + "\":";
     if (v.IsArray()) {
       Array arr = v.As<Array>();
       res += wg_object_array_to_string(arr);
-      last = ",";
     } else if (v.IsObject()){
       Object obj2 = v.As<Object>();
-      res += wg_object_to_string(obj2);
-      last = ",";
+      res += wg_object_to_string(obj2); 
     } else {
       string ss = v.ToString();
-      res += "\"" + ss + "\"";
-      last = ",";
+      res += "\"" + ss + "\""; 
     }
   }
   res += "}";
@@ -191,15 +175,14 @@ Object wg_string_to_object(string str, Env env) {
   Object obj = Object::New(env);
   vector<string> strList;
   if (str == "") return obj;
-  size_t pos;
-  while ((pos = str.find("{")) != string::npos) {
-    str.replace(pos, 1, ",");
-  }
-  while ((pos = str.find("}")) != string::npos) {
-    str.replace(pos, 1, ",");
-  }
+  for (char &c : str) {
+    if (c == '{' || c == '}') {
+      c = ',';
+    }
+  }  
   wg_string_split(str, ',', strList);
   for (auto s : strList) {
+    size_t pos;
     if (s.size() > 0) {
       while ((pos = s.find("\"")) != string::npos) {
         s.replace(pos, 1, "");
