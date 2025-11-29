@@ -81,10 +81,15 @@ const goCmd = process.env.GO_BINARY || 'go';
 const moduleRootRel = ` + string(moduleRootJSON) + `;
 const moduleRoot = moduleRootRel ? resolve(rootDir, moduleRootRel) : rootDir;
 const buildDir = join(rootDir, 'prebuild');
-const outDir = rootDir;
-const nodeGypBuildDir = join(outDir, 'build');
+const outDir = join(rootDir, 'builds');
+const nodeGypBuildDir = join(rootDir, 'build');
+const platformId = (() => {
+  const { platformIdentifier } = require('./platform');
+  return platformIdentifier();
+})();
+const targetDir = join(outDir, platformId);
 
-for (const dir of [buildDir, nodeGypBuildDir]) {
+for (const dir of [buildDir, nodeGypBuildDir, outDir]) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -250,8 +255,23 @@ function buildAddon(debug) {
   throw new Error('Failed to run node-gyp via any runner. Tried: ' + errors.join('; '));
 }
 
-function copyDllNextToNode() {
-  if (!isWin) return;
+function findNodeBinary(dir) {
+  if (!fs.existsSync(dir)) {
+    return null;
+  }
+  const entries = fs.readdirSync(dir);
+  for (const f of entries) {
+    if (f.toLowerCase().endsWith('.node')) {
+      return join(dir, f);
+    }
+  }
+  return null;
+}
+
+function copyArtifactsToTarget() {
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
 
   const nodeBins = [];
   const releaseDir = join(nodeGypBuildDir, 'Release');
@@ -266,24 +286,34 @@ function copyDllNextToNode() {
     }
   }
 
-  const dllSrc = join(buildDir, config.name + '.dll');
-  if (fs.existsSync(dllSrc)) {
-    for (const nodeBin of nodeBins) {
-      const dllTarget = join(path.dirname(nodeBin), path.basename(dllSrc));
-      fs.copyFileSync(dllSrc, dllTarget);
+  for (const nodeBin of nodeBins) {
+    const targetNode = join(targetDir, path.basename(nodeBin));
+    fs.copyFileSync(nodeBin, targetNode);
+    if (isWin) {
+      const dllSrc = join(buildDir, config.name + '.dll');
+      if (fs.existsSync(dllSrc)) {
+        fs.copyFileSync(dllSrc, join(targetDir, config.name + '.dll'));
+      }
     }
   }
 }
 
-function cleanupPrebuild() {
+function cleanupBuildDirs() {
   if (fs.existsSync(buildDir)) {
     fs.rmSync(buildDir, { recursive: true, force: true });
+  }
+  if (fs.existsSync(nodeGypBuildDir)) {
+    fs.rmSync(nodeGypBuildDir, { recursive: true, force: true });
   }
 }
 
 (() => {
   try {
     const debug = process.argv.includes('--debug');
+    if (fs.existsSync(targetDir) && findNodeBinary(targetDir)) {
+      console.log('Existing build detected for', platformId, '- skipping rebuild.');
+      return;
+    }
     buildGo();
     if (isWin) {
       patchWindowsHeader();
@@ -291,8 +321,8 @@ function cleanupPrebuild() {
       buildWindowsArtifacts(defPath);
     }
     buildAddon(debug);
-    copyDllNextToNode();
-    cleanupPrebuild();
+    copyArtifactsToTarget();
+    cleanupBuildDirs();
   } catch (err) {
     console.error(err && err.stack ? err.stack : err && err.message ? err.message : err);
     const exitCode = typeof err?.code === 'number' ? err.code : 1;

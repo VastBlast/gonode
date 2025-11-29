@@ -18,6 +18,7 @@ func generateAddonBridge(cfgs config.Config) bool {
 	packageName := "package.json"
 	buildScriptName := "build.js"
 	defName := cfgs.Name + ".def"
+	platformHelper := "platform.js"
 
 	// Remove previously generated artifacts
 	outputDir := tools.FormatDirPath(cfgs.OutPut)
@@ -58,6 +59,10 @@ func generateAddonBridge(cfgs config.Config) bool {
 
 	// Generate npm package template
 	if p := binding.GenPackageFile(cfgs, packageName); !p {
+		return false
+	}
+
+	if h := binding.GenPlatformHelper(platformHelper, cfgs); !h {
 		return false
 	}
 
