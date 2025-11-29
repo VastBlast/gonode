@@ -1,0 +1,125 @@
+{
+  "name": "goaddon",
+  "sources": [
+    "goaddon.go"
+  ],
+  "output": "./_addon/",
+  "exports": [
+    {
+      "name": "AddNumbers",
+      "args": [
+        {
+          "name": "a",
+          "type": "int32",
+          "isrequire": true
+        },
+        {
+          "name": "b",
+          "type": "int32",
+          "isrequire": true
+        }
+      ],
+      "returntype": "int32",
+      "jscallname": "add_numbers",
+      "jscallmode": "sync"
+    },
+    {
+      "name": "SyncDelay",
+      "args": [
+        {
+          "name": "ms",
+          "type": "int32",
+          "isrequire": true
+        }
+      ],
+      "returntype": "boolean",
+      "jscallname": "sync_delay",
+      "jscallmode": "sync"
+    },
+    {
+      "name": "AsyncDelay",
+      "args": [
+        {
+          "name": "ms",
+          "type": "int32",
+          "isrequire": true
+        },
+        {
+          "name": "cb",
+          "type": "callback",
+          "isrequire": true
+        }
+      ],
+      "returntype": "boolean",
+      "jscallname": "async_delay",
+      "jscallmode": "async"
+    },
+    {
+      "name": "RemoveItemFromArray",
+      "args": [
+        {
+          "name": "arr",
+          "type": "array",
+          "isrequire": true
+        },
+        {
+          "name": "i",
+          "type": "int32",
+          "isrequire": true
+        }
+      ],
+      "returntype": "array",
+      "jscallname": "remove_item_from_array",
+      "jscallmode": "sync"
+    },
+    {
+      "name": "RemoveKeyFromObject",
+      "args": [
+        {
+          "name": "obj",
+          "type": "object",
+          "isrequire": true
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "isrequire": true
+        }
+      ],
+      "returntype": "object",
+      "jscallname": "remove_key_from_object",
+      "jscallmode": "sync"
+    },
+    {
+      "name": "SyncReturnMessageAfterTwoSeconds",
+      "args": [
+        {
+          "name": "message",
+          "type": "string",
+          "isrequire": true
+        }
+      ],
+      "returntype": "string",
+      "jscallname": "sync_return_message_after_two_seconds",
+      "jscallmode": "sync"
+    },
+    {
+      "name": "AsyncReturnMessageAfterTwoSeconds",
+      "args": [
+        {
+          "name": "message",
+          "type": "string",
+          "isrequire": true
+        },
+        {
+          "name": "cb",
+          "type": "callback",
+          "isrequire": true
+        }
+      ],
+      "returntype": "string",
+      "jscallname": "async_return_message_after_two_seconds",
+      "jscallmode": "async"
+    }
+  ]
+}
