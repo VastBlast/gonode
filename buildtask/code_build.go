@@ -30,17 +30,19 @@ func generateAddonBridge(cfgs config.Config) bool {
 		filepath.Join(outputDir, buildScriptName),
 		filepath.Join(outputDir, defName),
 	}
-	//_ = tools.RemoveDirContents(outputDir)
 	_ = tools.RemoveFiles(paths)
 
+	buildCfg := cfgs
+	buildCfg.OutPut = outputDir
+
 	// Generate addon C/C++ code
-	if g := content.GenCode(cfgs, cppName); !g {
+	if g := content.GenCode(buildCfg, cppName); !g {
 		//clog.Warning("Please check whether the \"goaddon\" configuration file is correct.")
 		return false
 	}
 
 	// Generate node-gyp build configuration
-	if y := binding.GenGypFile(cfgs, bindingName); !y {
+	if y := binding.GenGypFile(buildCfg, bindingName); !y {
 		return false
 	}
 
@@ -66,7 +68,7 @@ func generateAddonBridge(cfgs config.Config) bool {
 
 	// Generate npm build script
 	moduleRoot := findGoModuleRoot(cfgs.Sources)
-	if b := binding.GenBuildScriptFile(cfgs, buildScriptName, moduleRoot); !b {
+	if b := binding.GenBuildScriptFile(buildCfg, buildScriptName, moduleRoot); !b {
 		return false
 	}
 

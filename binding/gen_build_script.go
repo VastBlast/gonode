@@ -80,6 +80,15 @@ const nodeGypFromEnv = process.env.npm_config_node_gyp;
 const goCmd = process.env.GO_BINARY || 'go';
 const moduleRootRel = ` + string(moduleRootJSON) + `;
 const moduleRoot = moduleRootRel ? resolve(rootDir, moduleRootRel) : rootDir;
+const buildDir = join(rootDir, 'prebuild');
+const outDir = rootDir;
+const nodeGypBuildDir = join(outDir, 'build');
+
+for (const dir of [buildDir, nodeGypBuildDir]) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
 
 function run(cmd, args) {
   const result = spawnSync(cmd, args, { cwd: rootDir, stdio: 'inherit' });
@@ -124,7 +133,7 @@ function buildGo() {
   if (!goCheck.ok && goCheck.missing) {
     throw new Error('Go toolchain not found. Please install Go and ensure "' + goCmd + '" is in PATH, or set GO_BINARY to the Go executable.');
   }
-  const args = ['build', '-buildmode=c-archive', '-o', join(rootDir, config.name + '.a')];
+  const args = ['build', '-buildmode=c-archive', '-o', join(buildDir, config.name + '.a')];
   for (const src of config.sources) {
     args.push(join(moduleRoot, src));
   }
@@ -146,7 +155,7 @@ function buildGo() {
 }
 
 function patchWindowsHeader() {
-  const headerPath = join(rootDir, config.name + '.h');
+  const headerPath = join(buildDir, config.name + '.h');
   if (!fs.existsSync(headerPath)) {
     throw new Error('Missing generated header file: ' + headerPath);
   }
@@ -178,25 +187,25 @@ function patchWindowsHeader() {
 }
 
 function writeDefFile() {
-  const defPath = join(rootDir, config.name + '.def');
+  const defPath = join(buildDir, config.name + '.def');
   const lines = ['EXPORTS', ...config.exports.map((name) => '  ' + name)];
   fs.writeFileSync(defPath, lines.join('\n') + '\n', 'utf8');
   return defPath;
 }
 
 function buildWindowsArtifacts(defPath) {
-  const dllName = config.name + '.dll';
-  const goLib = config.name + '.a';
+  const dllName = join(buildDir, config.name + '.dll');
+  const goLib = join(buildDir, config.name + '.a');
   console.log('Building Windows dll/lib ...');
 
-  run('gcc', [defPath, goLib, '-shared', '-lwinmm', '-lWs2_32', '-o', dllName, '-Wl,--out-implib,' + config.name + '.dll.a']);
+  run('gcc', [defPath, goLib, '-shared', '-lwinmm', '-lWs2_32', '-o', dllName, '-Wl,--out-implib,' + join(buildDir, config.name + '.dll.a')]);
 
   const machine = process.arch === 'ia32' ? 'X86' : 'X64';
-  const libRes = tryRun('lib', ['/def:' + defPath, '/name:' + dllName, '/out:' + config.name + '.lib', '/MACHINE:' + machine]);
+  const libRes = tryRun('lib', ['/def:' + defPath, '/name:' + dllName, '/out:' + join(buildDir, config.name + '.lib'), '/MACHINE:' + machine]);
   if (!libRes.ok && libRes.missing) {
-    const dllToolRes = tryRun('dlltool', ['-d', defPath, '-D', dllName, '-l', config.name + '.lib']);
+    const dllToolRes = tryRun('dlltool', ['-d', defPath, '-D', dllName, '-l', join(buildDir, config.name + '.lib')]);
     if (!dllToolRes.ok && dllToolRes.missing) {
-      throw new Error('Missing \"lib\" (Visual Studio) or \"dlltool\" (MinGW). Install one of them to produce the import library.');
+      throw new Error('Missing "lib" (Visual Studio) or "dlltool" (MinGW). Install one of them to produce the import library.');
     }
   }
 }
@@ -241,6 +250,37 @@ function buildAddon(debug) {
   throw new Error('Failed to run node-gyp via any runner. Tried: ' + errors.join('; '));
 }
 
+function copyDllNextToNode() {
+  if (!isWin) return;
+
+  const nodeBins = [];
+  const releaseDir = join(nodeGypBuildDir, 'Release');
+  const debugDir = join(nodeGypBuildDir, 'Debug');
+  for (const dir of [releaseDir, debugDir]) {
+    if (fs.existsSync(dir)) {
+      for (const f of fs.readdirSync(dir)) {
+        if (f.toLowerCase().endsWith('.node')) {
+          nodeBins.push(join(dir, f));
+        }
+      }
+    }
+  }
+
+  const dllSrc = join(buildDir, config.name + '.dll');
+  if (fs.existsSync(dllSrc)) {
+    for (const nodeBin of nodeBins) {
+      const dllTarget = join(path.dirname(nodeBin), path.basename(dllSrc));
+      fs.copyFileSync(dllSrc, dllTarget);
+    }
+  }
+}
+
+function cleanupPrebuild() {
+  if (fs.existsSync(buildDir)) {
+    fs.rmSync(buildDir, { recursive: true, force: true });
+  }
+}
+
 (() => {
   try {
     const debug = process.argv.includes('--debug');
@@ -251,6 +291,8 @@ function buildAddon(debug) {
       buildWindowsArtifacts(defPath);
     }
     buildAddon(debug);
+    copyDllNextToNode();
+    cleanupPrebuild();
   } catch (err) {
     console.error(err && err.stack ? err.stack : err && err.message ? err.message : err);
     const exitCode = typeof err?.code === 'number' ? err.code : 1;

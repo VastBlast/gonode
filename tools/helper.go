@@ -125,13 +125,20 @@ func IsLinuxOs() bool {
 }
 
 func FormatDirPath(op string) string {
-	if strings.LastIndex(op, "/") != len(op)-1 {
-		op += "/"
+	if len(op) == 0 {
+		return GetPWD() + string(filepath.Separator)
 	}
-	if strings.Index(op, "/") == 0 {
-		return op
+
+	cleanPath := filepath.Clean(op)
+	if !filepath.IsAbs(cleanPath) {
+		cleanPath = filepath.Join(GetPWD(), cleanPath)
 	}
-	return GetPWD() + "/" + op
+
+	if !strings.HasSuffix(cleanPath, string(filepath.Separator)) {
+		cleanPath += string(filepath.Separator)
+	}
+
+	return cleanPath
 }
 
 func ToFirstLower(str string) string {

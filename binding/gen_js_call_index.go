@@ -7,8 +7,9 @@ import (
 )
 
 func GenJsCallIndexFile(cfgs config.Config, indexJsName string) bool {
-	apiCode := genJsCallApiListCode(cfgs.Exports, cfgs.Name)
-	code := `const ` + cfgs.Name + ` = require('bindings')('` + cfgs.Name + `');
+	apiCode := genJsCallApiListCode(cfgs.Exports, "addon")
+	code := `const addon = require('bindings')('` + cfgs.Name + `');
+
 // JS call API
 module.exports = { ` + apiCode + `
 };

@@ -13,49 +13,50 @@ import (
 
 func makeToAddon(cfgs config.Config, args string) bool {
 
-	path := tools.FormatDirPath(cfgs.OutPut)
+	rootPath := tools.FormatDirPath(cfgs.OutPut)
+	goBuildPath := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "prebuild"))
+	buildOutputPath := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "build"))
 
 	// Check whether "gonacli generate" has been run
-	if !tools.Exists(filepath.Join(path, cfgs.Name+".cc")) {
+	if !tools.Exists(filepath.Join(rootPath, cfgs.Name+".cc")) {
 		clog.Error("You need to run \"gonacli generate\" generate c/c++ bridge code.")
 		return false
 	}
 
 	// Check whether "gonacli build" has been run
-	if !tools.Exists(filepath.Join(path, cfgs.Name+".a")) {
+	if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".a")) {
 		clog.Error("You need to run \"gonacli build\" build golang lib.")
 		return false
 	}
 
 	// Check whether "gonacli install" has been run
-	if !tools.Exists(filepath.Join(path, "node_modules")) {
+	if !tools.Exists(filepath.Join(rootPath, "node_modules")) {
 		clog.Error("You need to run \"gonacli install\" install dependencies.")
 		return false
 	}
 
 	// On Windows, verify whether "gonacli msvc" has been run
 	if tools.IsWindowsOs() {
-		if !tools.Exists(filepath.Join(path, cfgs.Name+".lib")) {
+		if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".lib")) {
 			clog.Error("You need to run \"gonacli msvc\" build lib on windows OS.")
 			return false
 		}
-		if !tools.Exists(filepath.Join(path, cfgs.Name+".dll")) {
+		if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".dll")) {
 			clog.Error("You need to run \"gonacli msvc\" build dll on windows OS.")
 			return false
 		}
 	}
 
 	// Remove previously generated artifacts
-	_ = tools.RemoveDirContents(filepath.Join(path, "build"))
 	files := []string{
-		filepath.Join(path, "package-lock.json"),
+		filepath.Join(rootPath, "package-lock.json"),
 	}
 	_ = tools.RemoveFiles(files)
 
 	clog.Info("Starting make addon ...")
 	msg, err := cmd.RunCommand(
 		"./",
-		"cd "+path+" && node-gyp configure && node-gyp build "+args,
+		"cd "+rootPath+" && node-gyp configure --build-dir="+buildOutputPath+" && node-gyp build "+args,
 	)
 	if err != nil {
 		//clog.Warning("Please check whether the \"node-gyp\" command is executed correctly.")
@@ -66,22 +67,24 @@ func makeToAddon(cfgs config.Config, args string) bool {
 	clog.Info(msg)
 
 	if tools.IsWindowsOs() {
-		if ok := moveDllNearNodeBinary(path, cfgs.Name); !ok {
+		if ok := moveDllNearNodeBinary(goBuildPath, cfgs.Name, buildOutputPath); !ok {
 			return false
 		}
 	}
 
+	_ = os.RemoveAll(goBuildPath)
+
 	return true
 }
 
-func moveDllNearNodeBinary(rootPath string, name string) bool {
-	dllPath := filepath.Join(rootPath, name+".dll")
+func moveDllNearNodeBinary(prebuildPath string, name string, buildOutputPath string) bool {
+	dllPath := filepath.Join(prebuildPath, name+".dll")
 	if !tools.Exists(dllPath) {
 		clog.Error("The dll file is missing, please execute \"gonacli msvc\" first.")
 		return false
 	}
 
-	nodeBins, err := filepath.Glob(filepath.Join(rootPath, "build", "*", name+".node"))
+	nodeBins, err := filepath.Glob(filepath.Join(buildOutputPath, "*", name+".node"))
 	if err != nil {
 		clog.Error(err)
 		return false

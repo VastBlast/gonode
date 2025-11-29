@@ -11,7 +11,7 @@ import (
 )
 
 func FixCGOWithWindow(cfgs config.Config) bool {
-	outputDir := tools.FormatDirPath(cfgs.OutPut)
+	outputDir := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "prebuild"))
 	headerFileName := cfgs.Name + ".h"
 	bakHeaderFileName := cfgs.Name + ".s.h"
 	headerFilePath := filepath.Join(outputDir, headerFileName)

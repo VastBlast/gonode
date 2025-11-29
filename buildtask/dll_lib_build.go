@@ -10,10 +10,13 @@ import (
 )
 
 func buildToDll(cfgs config.Config) bool {
-	path := tools.FormatDirPath(cfgs.OutPut)
+	rootPath := tools.FormatDirPath(cfgs.OutPut)
+	path := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "prebuild"))
+	buildCfg := cfgs
+	buildCfg.OutPut = path
 
 	// Check whether "gonacli generate" has been run
-	if !tools.Exists(filepath.Join(path, cfgs.Name+".cc")) {
+	if !tools.Exists(filepath.Join(rootPath, cfgs.Name+".cc")) {
 		clog.Error("You need to run \"gonacli generate\" generate c/c++ bridge code.")
 		return false
 	}
@@ -39,7 +42,7 @@ func buildToDll(cfgs config.Config) bool {
 
 	clog.Info("Start build library ...")
 	// Generate def file
-	if e := binding.GenDefFile(cfgs, defFile); !e {
+	if e := binding.GenDefFile(buildCfg, defFile); !e {
 		return false
 	}
 
@@ -71,7 +74,7 @@ func buildToMSVCLib(cfgs config.Config, useVS bool, msvc32Vs bool) bool {
 	defFile := cfgs.Name + ".def"
 	targetLibName := cfgs.Name + ".dll"
 
-	outputDir := tools.FormatDirPath(cfgs.OutPut)
+	outputDir := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "build"))
 	paths := []string{
 		filepath.Join(outputDir, libFile),
 	}
