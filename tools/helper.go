@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -196,4 +197,47 @@ func RemoveFiles(files []string) error {
 
 func RenameFile(spath string, tpath string) error {
 	return os.Rename(spath, tpath)
+}
+
+func CopyFile(src string, dst string) error {
+	srcAbs, err := filepath.Abs(src)
+	if err != nil {
+		return err
+	}
+	dstAbs, err := filepath.Abs(dst)
+	if err != nil {
+		return err
+	}
+
+	if srcAbs == dstAbs {
+		return nil
+	}
+
+	sf, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	if info, statErr := sf.Stat(); statErr == nil {
+		if info.IsDir() {
+			return errors.New("source path is a directory")
+		}
+	}
+
+	if err = EnsureDir(filepath.Dir(dst)); err != nil {
+		return err
+	}
+
+	df, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+
+	if _, err = io.Copy(df, sf); err != nil {
+		return err
+	}
+
+	return nil
 }

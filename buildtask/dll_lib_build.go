@@ -1,6 +1,7 @@
 package buildtask
 
 import (
+	"github.com/wenlng/gonacli/binding"
 	"github.com/wenlng/gonacli/clog"
 	"github.com/wenlng/gonacli/cmd"
 	"github.com/wenlng/gonacli/config"
@@ -38,7 +39,7 @@ func buildToDll(cfgs config.Config) bool {
 
 	clog.Info("Start build library ...")
 	// Generate def file
-	if e := genBuildExportNameToDef(cfgs.Exports, path, defFile); !e {
+	if e := binding.GenDefFile(cfgs, defFile); !e {
 		return false
 	}
 
@@ -48,20 +49,6 @@ func buildToDll(cfgs config.Config) bool {
 		return false
 	}
 
-	return true
-}
-
-func genBuildExportNameToDef(exports []config.Export, outPath string, filename string) bool {
-	code := tools.FormatCodeIndent("EXPORTS", 0)
-
-	for _, export := range exports {
-		name := export.Name
-		code += tools.FormatCodeIndentLn(name, 2)
-	}
-
-	if e := tools.WriteFile(code, outPath, filename); e != nil {
-		return false
-	}
 	return true
 }
 

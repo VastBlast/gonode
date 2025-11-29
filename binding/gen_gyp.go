@@ -6,11 +6,6 @@ import (
 )
 
 func GenGypFile(cfgs config.Config, bindingName string) bool {
-	ext := ".a"
-	if tools.IsWindowsOs() {
-		ext = ".lib"
-	}
-
 	code := `{
     "targets": [
         {
@@ -24,21 +19,24 @@ func GenGypFile(cfgs config.Config, bindingName string) bool {
                 "<!@(node -p \"require('node-addon-api').include\")"
             ],
             "defines": [ "NAPI_CPP_EXCEPTIONS", "NAPI_EXPERIMENTAL" ],
-            "libraries": [
-                "../` + cfgs.Name + ext + `"
-            ],
             "conditions": [
                 [ 'OS=="linux"', {
                     "cflags": [ "-O3", "-fdata-sections", "-ffunction-sections" ],
                     "cflags_cc": [ "-O3", "-fdata-sections", "-ffunction-sections" ],
-                    "ldflags": [ "-Wl,--gc-sections" ]
+                    "ldflags": [ "-Wl,--gc-sections" ],
+                    "libraries": [
+                        "<(module_root_dir)/` + cfgs.Name + `.a"
+                    ]
                 }],
                 [ 'OS=="mac"', {
                     "cflags": [ "-O3", "-fdata-sections", "-ffunction-sections" ],
                     "cflags_cc": [ "-O3", "-fdata-sections", "-ffunction-sections" ],
                     "xcode_settings": {
                         "OTHER_LDFLAGS": [ "-Wl,-dead_strip" ]
-                    }
+                    },
+                    "libraries": [
+                        "<(module_root_dir)/` + cfgs.Name + `.a"
+                    ]
                 }],
                 [ 'OS=="win"', {
                     "msvs_settings": {
@@ -60,11 +58,17 @@ func GenGypFile(cfgs config.Config, bindingName string) bool {
                             "files": [ "<(module_root_dir)/` + cfgs.Name + `.dll" ],
                             "destination": "<(PRODUCT_DIR)"
                         }
+                    ],
+                    "libraries": [
+                        "<(module_root_dir)/` + cfgs.Name + `.lib"
                     ]
                 }],
                 [ 'OS!="win" and OS!="linux" and OS!="mac"', {
                     "cflags": [ "-O3" ],
-                    "cflags_cc": [ "-O3" ]
+                    "cflags_cc": [ "-O3" ],
+                    "libraries": [
+                        "<(module_root_dir)/` + cfgs.Name + `.a"
+                    ]
                 }]
             ]
         }
