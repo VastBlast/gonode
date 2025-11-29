@@ -26,7 +26,7 @@ func SyncDelay(ms int32) bool {
 
 //export AsyncDelay
 func AsyncDelay(ms int32, cb *C.char) bool {
-	_ = cb // callback name used by gonacli for async exports
+	_ = cb // callback name used by gonode for async exports
 	time.Sleep(durationFromMS(ms))
 	return true
 }
@@ -81,7 +81,7 @@ func SyncReturnMessageAfterTwoSeconds(message *C.char) *C.char {
 
 //export AsyncReturnMessageAfterTwoSeconds
 func AsyncReturnMessageAfterTwoSeconds(message, cb *C.char) *C.char {
-	_ = cb // callback name used by gonacli for async exports
+	_ = cb // callback name used by gonode for async exports
 	output := returnMessageAfterTwoSeconds(C.GoString(message))
 	return C.CString(output)
 }

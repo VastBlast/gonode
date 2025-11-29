@@ -1,9 +1,9 @@
 package resync
 
 import (
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/content/args/argsync"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/content/args/argsync"
+	"github.com/VastBlast/gonode/tools"
 	"strings"
 )
 

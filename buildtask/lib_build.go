@@ -1,10 +1,10 @@
 package buildtask
 
 import (
-	"github.com/wenlng/gonacli/clog"
-	"github.com/wenlng/gonacli/cmd"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/clog"
+	"github.com/VastBlast/gonode/cmd"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/tools"
 	"path/filepath"
 )
 

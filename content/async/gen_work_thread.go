@@ -2,8 +2,8 @@ package async
 
 import (
 	"fmt"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/content/args/argasync"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/content/args/argasync"
 )
 
 // Generate thread entry code

@@ -1,13 +1,13 @@
 
 Step 1: Generate c/c++ code of nodejs addon bridging golang
-> ./gonacli-darwin generate
+> ./gonode-darwin generate
 
 Step 2: Generate golang library
-> ./gonacli-darwin build
+> ./gonode-darwin build
 
 Step 3: Install dependencies
-> ./gonacli-darwin install
+> ./gonode-darwin install
 > 
 Step 4: Compile NodeJS Addon
 Tip: Ensure that nodejs, npm and node-gyp are installed on the OS
-> ./gonacli-darwin make
+> ./gonode-darwin make

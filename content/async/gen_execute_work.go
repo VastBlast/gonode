@@ -1,7 +1,7 @@
 package async
 
 import (
-	"github.com/wenlng/gonacli/config"
+	"github.com/VastBlast/gonode/config"
 )
 
 // Generate async work execution code

@@ -1,7 +1,7 @@
 package reasync
 
 import (
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/tools"
 	"strings"
 )
 

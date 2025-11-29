@@ -2,9 +2,9 @@ package check
 
 import (
 	"fmt"
-	"github.com/wenlng/gonacli/clog"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/clog"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/tools"
 )
 
 func CheckBaseConfig(config config.Config) error {

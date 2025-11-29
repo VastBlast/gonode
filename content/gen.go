@@ -1,11 +1,11 @@
 package content
 
 import (
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/content/async"
-	"github.com/wenlng/gonacli/content/base"
-	"github.com/wenlng/gonacli/content/returns/resync"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/content/async"
+	"github.com/VastBlast/gonode/content/base"
+	"github.com/VastBlast/gonode/content/returns/resync"
+	"github.com/VastBlast/gonode/tools"
 )
 
 func GenCode(config config.Config, cppName string) bool {

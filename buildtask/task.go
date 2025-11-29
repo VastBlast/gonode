@@ -3,11 +3,11 @@ package buildtask
 import (
 	"fmt"
 	"github.com/jinzhu/configor"
-	"github.com/wenlng/gonacli/buildtask/compatible"
-	"github.com/wenlng/gonacli/check"
-	"github.com/wenlng/gonacli/clog"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/buildtask/compatible"
+	"github.com/VastBlast/gonode/check"
+	"github.com/VastBlast/gonode/clog"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/tools"
 	"path/filepath"
 	"strings"
 )
@@ -81,7 +81,7 @@ func checkConfigure(c config.Config) bool {
 }
 
 // Build golang library files
-// gonacli build => go build -buildmode c-archive -o xxx.a xxx.go xxx1.go xxx2.go ...
+// gonode build => go build -buildmode c-archive -o xxx.a xxx.go xxx1.go xxx2.go ...
 func RunBuildTask(config string, args string) bool {
 	if ok := parseAndCheck(config); !ok {
 		return false

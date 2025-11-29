@@ -1,11 +1,11 @@
 package buildtask
 
 import (
-	"github.com/wenlng/gonacli/binding"
-	"github.com/wenlng/gonacli/clog"
-	"github.com/wenlng/gonacli/cmd"
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/binding"
+	"github.com/VastBlast/gonode/clog"
+	"github.com/VastBlast/gonode/cmd"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/tools"
 	"path/filepath"
 )
 
@@ -15,15 +15,15 @@ func buildToDll(cfgs config.Config) bool {
 	buildCfg := cfgs
 	buildCfg.OutPut = path
 
-	// Check whether "gonacli generate" has been run
+	// Check whether "gonode generate" has been run
 	if !tools.Exists(filepath.Join(rootPath, cfgs.Name+".cc")) {
-		clog.Error("You need to run \"gonacli generate\" generate c/c++ bridge code.")
+		clog.Error("You need to run \"gonode generate\" generate c/c++ bridge code.")
 		return false
 	}
 
-	// Check whether "gonacli build" has been run
+	// Check whether "gonode build" has been run
 	if !tools.Exists(filepath.Join(path, cfgs.Name+".a")) {
-		clog.Error("You need to run \"gonacli build\" build golang lib.")
+		clog.Error("You need to run \"gonode build\" build golang lib.")
 		return false
 	}
 

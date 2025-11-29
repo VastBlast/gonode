@@ -1,9 +1,9 @@
 package async
 
 import (
-	"github.com/wenlng/gonacli/config"
-	"github.com/wenlng/gonacli/content/returns/reasync"
-	"github.com/wenlng/gonacli/tools"
+	"github.com/VastBlast/gonode/config"
+	"github.com/VastBlast/gonode/content/returns/reasync"
+	"github.com/VastBlast/gonode/tools"
 )
 
 // JS callback arguments

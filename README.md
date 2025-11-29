@@ -1,31 +1,33 @@
 <div align="center">
-<img width="120" style="padding-top: 50px" src="http://47.104.180.148/gonacli/gonacli_logo.svg"/>
-<h1 style="margin: 0; padding: 0">GonaCli</h1>
+<img width="120" style="padding-top: 50px" src="http://47.104.180.148/gonode/gonode_logo.svg"/>
+<h1 style="margin: 0; padding: 0">Gonode</h1>
 <p>This is a development tool that can quickly use Golang to develop NodeJS Addon.</p>
-<a href="https://goreportcard.com/report/github.com/wenlng/gonacli"><img src="https://goreportcard.com/badge/github.com/wenlng/gonacli"/></a>
-<a href="https://godoc.org/github.com/wenlng/gonacli"><img src="https://godoc.org/github.com/wenlng/gonacli?status.svg"/></a>
-<a href="https://github.com/wenlng/gonacli/releases"><img src="https://img.shields.io/github/v/release/wenlng/gonacli.svg"/></a>
-<a href="https://github.com/wenlng/gonacli/blob/master/LICENSE"><img src="https://img.shields.io/github/license/wenlng/gonacli.svg"/></a>
-<a href="https://github.com/wenlng/gonacli"><img src="https://img.shields.io/github/stars/wenlng/gonacli.svg"/></a>
-<a href="https://github.com/wenlng/gonacli"><img src="https://img.shields.io/github/last-commit/wenlng/gonacli.svg"/></a>
+<a href="https://goreportcard.com/report/github.com/VastBlast/gonode"><img src="https://goreportcard.com/badge/github.com/VastBlast/gonode"/></a>
+<a href="https://pkg.go.dev/github.com/VastBlast/gonode"><img src="https://pkg.go.dev/badge/github.com/VastBlast/gonode"/></a>
+<a href="https://github.com/VastBlast/gonode/releases"><img src="https://img.shields.io/github/v/release/VastBlast/gonode.svg"/></a>
+<a href="https://github.com/VastBlast/gonode/blob/master/LICENSE"><img src="https://img.shields.io/github/license/VastBlast/gonode.svg"/></a>
+<a href="https://github.com/VastBlast/gonode"><img src="https://img.shields.io/github/stars/VastBlast/gonode.svg"/></a>
+<a href="https://github.com/VastBlast/gonode"><img src="https://img.shields.io/github/last-commit/VastBlast/gonode.svg"/></a>
 </div>
 
 <br/>
 
 
-<a href="https://github.com/wenlng/gonacli">GONACLI</a> is a development tool that quickly uses Golang to develop <b>NodeJS Addon</b>. You only need to concentrate on the development of Golang, and you don't need to care about the implementation of the bridge layer. It supports JavaScript sync calls and async callbacks.
+<a href="https://github.com/VastBlast/gonode">GONODE</a> is a development tool that quickly uses Golang to develop <b>NodeJS Addon</b>. You only need to concentrate on the development of Golang, and you don't need to care about the implementation of the bridge layer. It supports JavaScript sync calls and async callbacks.
+
+> Originally created as <a href="https://github.com/wenlng/gonacli">gonacli</a> by <a href="https://github.com/wenlng">wenlng</a> — many thanks for the foundation.
 
 <br/>
 
  ⭐️ If it helps you, please give a star.
 
-- [https://github.com/wenlng/gonacli](https://github.com/wenlng/gonacli)
+- [https://github.com/VastBlast/gonode](https://github.com/VastBlast/gonode)
 
 
 <br/>
 
 
-## Compatible Support Of Gonacli
+## Compatible Support Of Gonode
 - Linux
 - Mac OS
 - Windows
@@ -58,9 +60,9 @@ PATH: %GOPATH%\bin
 
 Install
 ``` shell
-$ go install github.com/wenlng/gonacli@latest
+$ go install github.com/VastBlast/gonode@latest
 
-$ gonacli version
+$ gonode version
 ```
 <br/>
 
@@ -81,7 +83,7 @@ $ npm install --global --production windows-build-tools
 ```
 <br/>
 
-## Gonacli Command
+## Gonode Command
 
 ### 1. generate
 
@@ -89,10 +91,10 @@ Generate bridge code related to NodeJS Addon according to the configuration of g
 
 ``` shell
 # By default, it reads the goaddon in the current directory Json configuration file
-$ gonacli generate
+$ gonode generate
 
 # --config: Specify Profile
-$ gonacli generate --config demoaddon.json
+$ gonode generate --config demoaddon.json
 ```
 
 ### 2. build
@@ -101,11 +103,11 @@ Same as the `go build - buildmode=c-archive` command, compile the library
 
 ``` shell
 # Compile to generate library
-$ gonacli build
+$ gonode build
 
 # --args: Specify the args of go build
 # --config: Specify Profile
-$ gonacli build --args '-ldflags "-s -w"'
+$ gonode build --args '-ldflags "-s -w"'
 ```
 
 ### 3. install
@@ -114,10 +116,10 @@ Same as the `npm install`， Install NodeJS dependencies.
 
 ``` shell
 # Install dependencies
-gonacli install
+gonode install
 
 # --config: Specify Profile
-$ gonacli install --config demoaddon.json
+$ gonode install --config demoaddon.json
 ```
 
 ### 4. msvc
@@ -129,12 +131,12 @@ Select `dlltool.exe` in the Windows OS environment or `lib.exe`
 2.`lib.exe` of `Microsoft Visual c++ Build tools` or `Visual Studio`
 
 ``` shell
-$ gonacli msvc
+$ gonode msvc
 
 # --vs: use VS "lib.exe", default is "dlltool.exe" of MinGW
 # --32x: Supports 32-bit OS，default 64.
 # --config: Specify Profile
-$ gonacli msvc --config demoaddon.json
+$ gonode msvc --config demoaddon.json
 ```
 
 ### 5. make
@@ -149,7 +151,7 @@ Before using the "--npm-i" arg, ensure that the system has installed the npm pac
 
 ``` shell
 # --args: Specify the parameters of node-gyp build，for example "--debug"
-$ gonacli make --args '--debug'
+$ gonode make --args '--debug'
 ```
 
 ### 6. clean
@@ -157,10 +159,10 @@ $ gonacli make --args '--debug'
 Clean the configured output directory when it exists.
 
 ``` shell
-$ gonacli clean
+$ gonode clean
 
 # --config: Specify Profile
-$ gonacli clean --config demoaddon.json
+$ gonode clean --config demoaddon.json
 ```
 
 ### 7. all
@@ -168,14 +170,14 @@ $ gonacli clean --config demoaddon.json
 Run the full pipeline: clean -> generate -> build -> install -> (Windows only) msvc -> make.
 
 ``` shell
-$ gonacli all
+$ gonode all
 
 # --config: Specify Profile
 # --build-args: Args for go build
 # --make-args: Args for node-gyp build
 # --vs: Use VS \"lib.exe\" during msvc (Windows only)
 # --32x: Build 32-bit library with VS toolchain (Windows only)
-$ gonacli all --config demoaddon.json --build-args '-ldflags "-s -w"' --make-args '--debug'
+$ gonode all --config demoaddon.json --build-args '-ldflags "-s -w"' --make-args '--debug'
 ```
 
 <br/>
@@ -254,27 +256,27 @@ func Hello(_name *C.char) *C.char {
 #### 3. Generate Bridging Napi C/C++ Code
 ``` shell
 # Save to the "./demoaddon/" directory
-$ gonacli generate --config ./goaddon.json
+$ gonode generate --config ./goaddon.json
 ```
 
 #### 4.Compile Libraries
 ``` shell
 # Save to the "./demoaddon/" directory
-$ gonacli build
+$ gonode build
 ```
 
 
 #### 5. Install Dependencies
 ``` shell
 # Save to the "./demoaddon/build" directory
-$ gonacli install
+$ gonode install
 ```
 
 
 #### 6. Compile Nodejs Addon
 ``` shell
 # Save to the "./demoaddon/build" directory
-$ gonacli make
+$ gonode make
 ```
 
 #### 7. Create JS Test File
