@@ -12,7 +12,7 @@ func GenJsCallIndexFile(cfgs config.Config, indexJsName string) bool {
 const { platformIdentifier } = require('./platform');
 
 const buildId = platformIdentifier();
-const addonPath = path.join(__dirname, 'builds', buildId, '` + cfgs.Name + `.node');
+const addonPath = path.join(__dirname, 'prebuilds', buildId, '` + cfgs.Name + `.node');
 const addon = require(addonPath);
 
 // JS call API

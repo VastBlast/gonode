@@ -81,7 +81,7 @@ const goCmd = process.env.GO_BINARY || 'go';
 const moduleRootRel = ` + string(moduleRootJSON) + `;
 const moduleRoot = moduleRootRel ? resolve(rootDir, moduleRootRel) : rootDir;
 const buildDir = join(rootDir, 'prebuild');
-const outDir = join(rootDir, 'builds');
+const outDir = join(rootDir, 'prebuilds');
 const nodeGypBuildDir = join(rootDir, 'build');
 const platformId = (() => {
   const { platformIdentifier } = require('./platform');
@@ -138,14 +138,29 @@ function buildGo() {
   if (!goCheck.ok && goCheck.missing) {
     throw new Error('Go toolchain not found. Please install Go and ensure "' + goCmd + '" is in PATH, or set GO_BINARY to the Go executable.');
   }
+  const workDir = fs.existsSync(moduleRoot) ? moduleRoot : rootDir;
+  if (!fs.existsSync(workDir)) {
+    throw new Error('Go module root "' + workDir + '" does not exist. Make sure Go sources are included in the installed package.');
+  }
+
+  const missingSources = [];
+  for (const src of config.sources) {
+    const full = join(workDir, src);
+    if (!fs.existsSync(full)) {
+      missingSources.push(full);
+    }
+  }
+  if (missingSources.length > 0) {
+    throw new Error('Go sources are missing from this package. Ensure the following files are published: ' + missingSources.join(', '));
+  }
+
   const args = ['build', '-buildmode=c-archive', '-o', join(buildDir, config.name + '.a')];
   for (const src of config.sources) {
-    args.push(join(moduleRoot, src));
+    args.push(join(workDir, src));
   }
-  const workDir = moduleRoot || rootDir;
   const result = spawnSync(goCmd, args, { cwd: workDir, stdio: 'inherit' });
   if (result.error) {
-    const err = new Error(result.error.message || String(result.error));
+    const err = new Error('Failed to run Go build. ' + (result.error.message || String(result.error)) + ' (cwd=' + workDir + ')');
     err.code = typeof result.error.code === 'number' ? result.error.code : 1;
     err.errno = typeof result.error.code === 'string' ? result.error.code : undefined;
     throw err;
