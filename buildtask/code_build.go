@@ -1,11 +1,12 @@
 package buildtask
 
 import (
+	"path/filepath"
+
 	"github.com/wenlng/gonacli/binding"
 	"github.com/wenlng/gonacli/config"
 	"github.com/wenlng/gonacli/content"
 	"github.com/wenlng/gonacli/tools"
-	"path/filepath"
 )
 
 func generateAddonBridge(cfgs config.Config) bool {
@@ -15,6 +16,9 @@ func generateAddonBridge(cfgs config.Config) bool {
 	indexJsName := "index.js"
 	indexDTsName := "index.d.ts"
 	packageName := "package.json"
+	buildScriptName := "build.js"
+	defName := cfgs.Name + ".def"
+	platformHelper := "platform.js"
 
 	// Remove previously generated artifacts
 	outputDir := tools.FormatDirPath(cfgs.OutPut)
@@ -24,18 +28,22 @@ func generateAddonBridge(cfgs config.Config) bool {
 		filepath.Join(outputDir, indexJsName),
 		filepath.Join(outputDir, indexDTsName),
 		filepath.Join(outputDir, packageName),
+		filepath.Join(outputDir, buildScriptName),
+		filepath.Join(outputDir, defName),
 	}
-	//_ = tools.RemoveDirContents(outputDir)
 	_ = tools.RemoveFiles(paths)
 
+	buildCfg := cfgs
+	buildCfg.OutPut = outputDir
+
 	// Generate addon C/C++ code
-	if g := content.GenCode(cfgs, cppName); !g {
+	if g := content.GenCode(buildCfg, cppName); !g {
 		//clog.Warning("Please check whether the \"goaddon\" configuration file is correct.")
 		return false
 	}
 
 	// Generate node-gyp build configuration
-	if y := binding.GenGypFile(cfgs, bindingName); !y {
+	if y := binding.GenGypFile(buildCfg, bindingName); !y {
 		return false
 	}
 
@@ -54,5 +62,42 @@ func generateAddonBridge(cfgs config.Config) bool {
 		return false
 	}
 
+	if h := binding.GenPlatformHelper(platformHelper, cfgs); !h {
+		return false
+	}
+
+	// Generate Windows def template
+	if d := binding.GenDefFile(cfgs, defName); !d {
+		return false
+	}
+
+	// Generate npm build script
+	moduleRoot := findGoModuleRoot(cfgs.Sources)
+	if b := binding.GenBuildScriptFile(buildCfg, buildScriptName, moduleRoot); !b {
+		return false
+	}
+
 	return true
+}
+
+func findGoModuleRoot(sources []string) string {
+	for _, source := range sources {
+		srcPath := source
+		if !filepath.IsAbs(srcPath) {
+			srcPath = filepath.Join(tools.GetPWD(), source)
+		}
+
+		dir := filepath.Dir(srcPath)
+		for {
+			if tools.Exists(filepath.Join(dir, "go.mod")) {
+				return dir
+			}
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break
+			}
+			dir = parent
+		}
+	}
+	return ""
 }

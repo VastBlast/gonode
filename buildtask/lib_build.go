@@ -13,7 +13,7 @@ func buildGoToLibrary(cfgs config.Config, args string) bool {
 	libHName := cfgs.Name + ".h"
 
 	// Remove previously generated artifacts
-	outputDir := tools.FormatDirPath(cfgs.OutPut)
+	outputDir := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "prebuild"))
 	paths := []string{
 		filepath.Join(outputDir, libName),
 		filepath.Join(outputDir, libHName),
@@ -22,7 +22,12 @@ func buildGoToLibrary(cfgs config.Config, args string) bool {
 
 	clog.Info("Start build library ...")
 	sourceFiles := genBuildFile(cfgs)
-	if d := buildLibrary(sourceFiles, libName, outputDir, args); !d {
+	moduleRoot := findGoModuleRoot(cfgs.Sources)
+	workDir := "./"
+	if len(moduleRoot) > 0 {
+		workDir = moduleRoot
+	}
+	if d := buildLibrary(sourceFiles, libName, outputDir, args, workDir); !d {
 		return false
 	}
 
@@ -38,10 +43,10 @@ func genBuildFile(config config.Config) string {
 	return files
 }
 
-func buildLibrary(sourceFiles string, libName string, outPath string, args string) bool {
+func buildLibrary(sourceFiles string, libName string, outPath string, args string, workDir string) bool {
 	oPath := outPath + libName
 	msg, err := cmd.RunCommand(
-		"./",
+		workDir,
 		"go build -buildmode c-archive "+args+" -o "+oPath+sourceFiles,
 	)
 	if err != nil {

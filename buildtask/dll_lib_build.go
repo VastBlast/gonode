@@ -1,6 +1,7 @@
 package buildtask
 
 import (
+	"github.com/wenlng/gonacli/binding"
 	"github.com/wenlng/gonacli/clog"
 	"github.com/wenlng/gonacli/cmd"
 	"github.com/wenlng/gonacli/config"
@@ -9,10 +10,13 @@ import (
 )
 
 func buildToDll(cfgs config.Config) bool {
-	path := tools.FormatDirPath(cfgs.OutPut)
+	rootPath := tools.FormatDirPath(cfgs.OutPut)
+	path := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "prebuild"))
+	buildCfg := cfgs
+	buildCfg.OutPut = path
 
 	// Check whether "gonacli generate" has been run
-	if !tools.Exists(filepath.Join(path, cfgs.Name+".cc")) {
+	if !tools.Exists(filepath.Join(rootPath, cfgs.Name+".cc")) {
 		clog.Error("You need to run \"gonacli generate\" generate c/c++ bridge code.")
 		return false
 	}
@@ -38,7 +42,7 @@ func buildToDll(cfgs config.Config) bool {
 
 	clog.Info("Start build library ...")
 	// Generate def file
-	if e := genBuildExportNameToDef(cfgs.Exports, path, defFile); !e {
+	if e := binding.GenDefFile(buildCfg, defFile); !e {
 		return false
 	}
 
@@ -48,20 +52,6 @@ func buildToDll(cfgs config.Config) bool {
 		return false
 	}
 
-	return true
-}
-
-func genBuildExportNameToDef(exports []config.Export, outPath string, filename string) bool {
-	code := tools.FormatCodeIndent("EXPORTS", 0)
-
-	for _, export := range exports {
-		name := export.Name
-		code += tools.FormatCodeIndentLn(name, 2)
-	}
-
-	if e := tools.WriteFile(code, outPath, filename); e != nil {
-		return false
-	}
 	return true
 }
 
@@ -84,7 +74,7 @@ func buildToMSVCLib(cfgs config.Config, useVS bool, msvc32Vs bool) bool {
 	defFile := cfgs.Name + ".def"
 	targetLibName := cfgs.Name + ".dll"
 
-	outputDir := tools.FormatDirPath(cfgs.OutPut)
+	outputDir := tools.FormatDirPath(filepath.Join(cfgs.OutPut, "build"))
 	paths := []string{
 		filepath.Join(outputDir, libFile),
 	}

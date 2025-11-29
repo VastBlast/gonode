@@ -12,10 +12,10 @@ func GenPackageFile(cfgs config.Config, packageName string) bool {
   "description": "",
   "main": "index.js",
   "scripts": {
-    "install": "node-gyp rebuild",
-    "build": "node-gyp configure && node-gyp build",
-    "build:debug": "node-gyp configure && node-gyp build --debug",
-    "build:release": "node-gyp configure && node-gyp build"
+    "install": "node ./build.js",
+    "build": "node ./build.js",
+    "build:debug": "node ./build.js --debug",
+    "build:release": "node ./build.js"
   },
   "author": "",
   "license": "ISC",
