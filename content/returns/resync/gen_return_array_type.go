@@ -12,10 +12,10 @@ func GenHandleReturnArrayCode(method string, args []string, preCode string) stri
 	code := tools.FormatCodeIndentLn(`string wg_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 
 	// 转换成数组
-	code += tools.FormatCodeIndentLn(`Array wg_arr = wg_string_to_array(wg_res_, wg_env);`, 2)
+	code += tools.FormatCodeIndentLn(`Array wg_arr_ = wg_string_to_array(wg_res_, wg_env);`, 2)
 
 	code += preCode
-	code += tools.FormatCodeIndentLn(`return wg_arr;`, 2)
+	code += tools.FormatCodeIndentLn(`return wg_arr_;`, 2)
 	return code
 }
 

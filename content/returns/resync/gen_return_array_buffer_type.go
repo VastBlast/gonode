@@ -12,12 +12,12 @@ func GenHandleReturnArrayBufferCode(method string, args []string, preCode string
 	// 转换成数组buffer
 	code := `
   void * wg_res_ = ` + method + `(` + strings.Join(args, ",") + `);
-  char *wg_ab = (char*) wg_res_;
-  size_t wg_ab_length = strlen(wg_ab);
-  ArrayBuffer wg_arr_buffer = ArrayBuffer::New(wg_env, wg_ab, wg_ab_length);`
+  char *wg_ab_ = (char*) wg_res_;
+  size_t wg_ab_length_ = strlen(wg_ab_);
+  ArrayBuffer wg_arr_buffer_ = ArrayBuffer::New(wg_env, wg_ab_, wg_ab_length_);`
 
 	code += preCode
-	code += tools.FormatCodeIndentLn(`return wg_arr_buffer;`, 2)
+	code += tools.FormatCodeIndentLn(`return wg_arr_buffer_;`, 2)
 	return code
 }
 

@@ -17,7 +17,7 @@ func GenAsyncCallReturnArrayTypeCode(methodName string, argNames []string) strin
 }
 
 func GenAsyncCallbackArgArrayTypeCode() string {
-	code := `Array wg_arr = wg_string_to_array(wg_res_, wg_env);
-    napi_value wg_argv[] = { wg_arr };`
+	code := `Array wg_arr_ = wg_string_to_array(wg_res_, wg_env);
+    napi_value wg_argv[] = { wg_arr_ };`
 	return code
 }

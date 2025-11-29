@@ -17,9 +17,9 @@ func GenAsyncCallReturnArrayBufferTypeCode(methodName string, argNames []string)
 }
 
 func GenAsyncCallbackArgArrayBufferTypeCode() string {
-	code := `char *wg_ab = (char*) wg_res_;
-    size_t wg_ab_length = strlen(wg_ab);
-    ArrayBuffer wg_arr_buffer = ArrayBuffer::New(wg_env, wg_ab, wg_ab_length);
-    napi_value wg_argv[] = { wg_arr_buffer };`
+	code := `char *wg_ab_ = (char*) wg_res_;
+    size_t wg_ab_length_ = strlen(wg_ab_);
+    ArrayBuffer wg_arr_buffer_ = ArrayBuffer::New(wg_env, wg_ab_, wg_ab_length_);
+    napi_value wg_argv[] = { wg_arr_buffer_ };`
 	return code
 }
