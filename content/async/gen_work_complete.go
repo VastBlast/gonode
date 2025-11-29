@@ -11,13 +11,16 @@ static void ` + workCompleteName + `(napi_env wg_env, napi_status wg_status, voi
   wg_addon->work = NULL;
   wg_addon->tsfn = NULL;
   for (int i = 0; i < wg_addon->argc; i++) {
-    if (wg_addon->args[i]->type == 1) {
+    if (wg_addon->args[i] != NULL && wg_addon->args[i]->type == 1) {
       WgAddonArgInfo* info = (WgAddonArgInfo*)wg_addon->args[i];
       delete [] (char *)info->value;
     }
-    free(wg_addon->args[i]);
-    wg_addon->args[i] = NULL;
+    if (wg_addon->args[i] != NULL) {
+      free(wg_addon->args[i]);
+      wg_addon->args[i] = NULL;
+    }
   }
+  free(wg_addon);
 }`
 	return code
 }

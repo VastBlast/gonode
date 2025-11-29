@@ -43,6 +43,9 @@ static napi_value ` + workName + `(napi_env wg_env, napi_callback_info wg_info) 
   ` + structDataName + `* wg_addon = (` + structDataName + `*)malloc(sizeof(*wg_addon));
   wg_addon->work = NULL;
   wg_addon->argc = wg_argc;
+  for (size_t i = 0; i < wg_argc; i++) {
+    wg_addon->args[i] = NULL;
+  }
   wg_sts = napi_get_cb_info(wg_env, wg_info, &wg_argc, wg_args, NULL, NULL);
   wg_catch_err(wg_env, wg_sts);
   napi_value wg_js_cb = wg_args[wg_cb_arg_index];` + inputArgCode + `

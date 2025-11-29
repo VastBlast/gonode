@@ -8,7 +8,7 @@ import (
 func GenPackageFile(cfgs config.Config, packageName string) bool {
 	code := `{
   "name": "` + cfgs.Name + `",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
