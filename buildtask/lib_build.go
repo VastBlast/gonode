@@ -12,7 +12,7 @@ func buildGoToLibrary(cfgs config.Config, args string) bool {
 	libName := cfgs.Name + ".a"
 	libHName := cfgs.Name + ".h"
 
-	// 清空生成的相关文件
+	// Remove previously generated artifacts
 	outputDir := tools.FormatDirPath(cfgs.OutPut)
 	paths := []string{
 		filepath.Join(outputDir, libName),
@@ -29,7 +29,7 @@ func buildGoToLibrary(cfgs config.Config, args string) bool {
 	return true
 }
 
-// 生成 build go 文件集合
+// Build the list of Go source files
 func genBuildFile(config config.Config) string {
 	files := ""
 	for _, source := range config.Sources {

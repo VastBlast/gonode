@@ -12,8 +12,6 @@
 
 <br/>
 
-> English | [中文](README_zh.md)
-
 
 <a href="https://github.com/wenlng/gonacli">GONACLI</a> is a development tool that quickly uses Golang to develop <b>NodeJS Addon</b>. You only need to concentrate on the development of Golang, and you don't need to care about the implementation of the bridge layer. It supports JavaScript sync calls and async callbacks.
 
@@ -50,7 +48,7 @@ export GOPATH="/Users/awen/go"
 export PATH="$PATH:$GOPATH:$GOPATH/bin"
 ```
 
-Window
+Windows
 ``` shell
 # set system path
 GOPATH: C:\awen\go
@@ -182,9 +180,9 @@ $ gonacli all --config demoaddon.json --build-args '-ldflags "-s -w"' --make-arg
 
 <br/>
 
-## Use Golang to develop an Demo of NodeJS Addon
+## Use Golang to develop a Demo of NodeJS Addon
 
-Tip：Ensure that relevant commands can be used normally, This is an demo under Linux/OS environment.
+Tip: Ensure that relevant commands can be used normally. This is a demo under Linux/OS environment.
 
 ``` shell
 # go
@@ -253,7 +251,7 @@ func Hello(_name *C.char) *C.char {
 }
 ```
 
-#### 3. Generate Rridging Napi C/C++ Code
+#### 3. Generate Bridging Napi C/C++ Code
 ``` shell
 # Save to the "./demoaddon/" directory
 $ gonacli generate --config ./goaddon.json
@@ -273,7 +271,7 @@ $ gonacli install
 ```
 
 
-#### 6. Compile Nodejs Adddon
+#### 6. Compile Nodejs Addon
 ``` shell
 # Save to the "./demoaddon/build" directory
 $ gonacli make
@@ -516,7 +514,7 @@ func Hello(_name *C.char, cbsFnName *C.char) *C.char {
 const demoaddon = require('./demoaddon')
 
 const name = "awen"
-demoaddon.hello(name, funciton(res){
+demoaddon.hello(name, function(res){
     console.log('>>> ', res)
 })
 ```

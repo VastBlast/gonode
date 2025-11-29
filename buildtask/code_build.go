@@ -16,7 +16,7 @@ func generateAddonBridge(cfgs config.Config) bool {
 	indexDTsName := "index.d.ts"
 	packageName := "package.json"
 
-	// 清空生成的相关文件
+	// Remove previously generated artifacts
 	outputDir := tools.FormatDirPath(cfgs.OutPut)
 	paths := []string{
 		filepath.Join(outputDir, cppName),
@@ -28,28 +28,28 @@ func generateAddonBridge(cfgs config.Config) bool {
 	//_ = tools.RemoveDirContents(outputDir)
 	_ = tools.RemoveFiles(paths)
 
-	// 生成 addon c/c++ 代码
+	// Generate addon C/C++ code
 	if g := content.GenCode(cfgs, cppName); !g {
 		//clog.Warning("Please check whether the \"goaddon\" configuration file is correct.")
 		return false
 	}
 
-	// 生成 node-gyp 编译配置文件
+	// Generate node-gyp build configuration
 	if y := binding.GenGypFile(cfgs, bindingName); !y {
 		return false
 	}
 
-	// 生成 js call api to index.js
+	// Generate JS call API to index.js
 	if i := binding.GenJsCallIndexFile(cfgs, indexJsName); !i {
 		return false
 	}
 
-	// 生成 js call api to index.d.t
+	// Generate JS call API typings to index.d.ts
 	if t := binding.GenJsCallDeclareIndexFile(cfgs, indexDTsName); !t {
 		return false
 	}
 
-	// 生成 npm package 包模板文件
+	// Generate npm package template
 	if p := binding.GenPackageFile(cfgs, packageName); !p {
 		return false
 	}

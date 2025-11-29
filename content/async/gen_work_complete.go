@@ -1,6 +1,6 @@
 package async
 
-// 生成线程执行完成代码
+// Generate code for async work completion
 func genWorkCompleteCode(workCompleteName string, structDataName string) string {
 	code := `
 // -------- genworkThreadCompleteCode

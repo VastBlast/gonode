@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-// 生成处理体
+// Generate handler body
 func GenHandleReturnIntCode(method string, args []string, varType string, endCode string) string {
 	code := ""
 
-	// 	int32 int64 uint32
+	// int32 int64 uint32
 	if varType == "int64" {
 		code = tools.FormatCodeIndentLn(`long long int wg_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 	} else if varType == "uint32" {
@@ -25,7 +25,7 @@ func GenHandleReturnIntCode(method string, args []string, varType string, endCod
 	return code
 }
 
-// 生成-返回数字型
+// Generate return code for integer types
 func GenReturnIntTypeCode(export config.Export, varType string) string {
 	methodName := export.Name
 	args := export.Args

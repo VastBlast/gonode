@@ -64,7 +64,7 @@ func normalizeArgs(args string) string {
 }
 
 func checkConfigure(c config.Config) bool {
-	// 检查配置文件
+	// Check configuration file
 	if err := check.CheckBaseConfig(c); err != nil {
 		clog.Error(err)
 		return false
@@ -80,7 +80,7 @@ func checkConfigure(c config.Config) bool {
 	return true
 }
 
-// 编译 golang lib 文件
+// Build golang library files
 // gonacli build => go build -buildmode c-archive -o xxx.a xxx.go xxx1.go xxx2.go ...
 func RunBuildTask(config string, args string) bool {
 	if ok := parseAndCheck(config); !ok {
@@ -106,7 +106,7 @@ func RunCleanTask(config string) bool {
 	return true
 }
 
-// 生成 bridge c/c++ 代码
+// Generate bridge C/C++ code
 func RunGenerateTask(config string) bool {
 	if ok := parseAndCheck(config); !ok {
 		return false
@@ -115,7 +115,7 @@ func RunGenerateTask(config string) bool {
 	return runGenerateStep()
 }
 
-// 初始化 npm install xxxx
+// Initialize npm install dependencies
 func RunInstallTask(config string) bool {
 	if ok := parseAndCheck(config); !ok {
 		return false
@@ -124,7 +124,7 @@ func RunInstallTask(config string) bool {
 	return runInstallStep()
 }
 
-// 编译 node addon
+// Compile node addon
 func RunMakeTask(config string, args string) bool {
 	if ok := parseAndCheck(config); !ok {
 		return false
@@ -176,7 +176,7 @@ func RunAllTask(config string, buildArgs string, makeArgs string, useVS bool, ms
 	return true
 }
 
-// window 环境下兼容处理
+// Windows environment compatibility handling
 func RunMsvcTask(config string, useVS bool, msvc32Vs bool) bool {
 	if ok := parseAndCheck(config); !ok {
 		return false
@@ -239,11 +239,11 @@ func runMsvcStep(useVS bool, msvc32Vs bool) bool {
 		return false
 	}
 
-	clog.Info("Staring fix file ...")
+	clog.Info("Starting fix file ...")
 	compatible.FixCGOWithWindow(cfgs)
 	clog.Info("Fix file done ~")
 
-	clog.Info("Staring build dll ...")
+	clog.Info("Starting build dll ...")
 	if done := buildToDll(cfgs); !done {
 		clog.Error("Fail build dll!")
 		return false
@@ -251,7 +251,7 @@ func runMsvcStep(useVS bool, msvc32Vs bool) bool {
 	clog.Success("Successfully build dll ~")
 	fmt.Println("")
 
-	clog.Info("Staring build lib ...")
+	clog.Info("Starting build lib ...")
 	if done := buildToMSVCLib(cfgs, useVS, msvc32Vs); !done {
 		clog.Error("Fail build lib!")
 		return false

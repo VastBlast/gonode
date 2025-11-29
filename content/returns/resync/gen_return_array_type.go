@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-// 生成处理体
+// Generate handler body
 func GenHandleReturnArrayCode(method string, args []string, preCode string) string {
 	code := tools.FormatCodeIndentLn(`string wg_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 
-	// 转换成数组
+	// Convert to array
 	code += tools.FormatCodeIndentLn(`Array wg_arr_ = wg_string_to_array(wg_res_, wg_env);`, 2)
 
 	code += preCode
@@ -19,7 +19,7 @@ func GenHandleReturnArrayCode(method string, args []string, preCode string) stri
 	return code
 }
 
-// 生成-返回数字型
+// Generate return code for array type
 func GenReturnArrayTypeCode(export config.Export) string {
 	methodName := export.Name
 	args := export.Args

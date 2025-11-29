@@ -16,7 +16,7 @@ func CheckBaseConfig(config config.Config) error {
 
 	clog.Info("Start checking the configured ...")
 
-	// 检测参数列表是否冲突
+	// Check whether the parameter lists conflict
 	exports := config.Exports
 
 	var goApiList = make([]string, 0)
@@ -27,7 +27,7 @@ func CheckBaseConfig(config config.Config) error {
 	var returnAllowArgsList = []string{"int", "int32", "int64", "uint32", "float", "double", "boolean", "string", "array", "object"}
 
 	for _, export := range exports {
-		// 正在检测导出的 Go API、JS CALL API 是否重复
+		// Check for duplicate Go export names or JS call names
 		if tools.InSlice(goApiList, export.Name) {
 			return fmt.Errorf("The export Name \"%s\" already exists", export.Name)
 		}
@@ -38,7 +38,7 @@ func CheckBaseConfig(config config.Config) error {
 		}
 		JsCallApiList = append(JsCallApiList, export.JsCallName)
 
-		// 检测参数类型是正确，列表中是否重复命名
+		// Ensure parameter types are valid and names are not duplicated
 		var curArgsList = make([]string, 0)
 		for _, arg := range export.Args {
 			if !tools.InSlice(allowArgsList, arg.Type) {
@@ -51,7 +51,7 @@ func CheckBaseConfig(config config.Config) error {
 			curArgsList = append(curArgsList, arg.Name)
 		}
 
-		// 检测返回值是否正确 - 没有callback
+		// Validate return types (callback not allowed)
 		if !tools.InSlice(returnAllowArgsList, export.ReturnType) {
 			return fmt.Errorf("The return type \"%s\" of the exported [%s] is not supported", export.ReturnType, export.Name)
 		}
@@ -80,8 +80,8 @@ func CheckAsyncCorrectnessConfig(config config.Config) error {
 
 func CheckExportApiWithSourceFile(config config.Config) bool {
 
-	// @todo 分析检测 golang 源文件与 json 配置文件是否保持一致
-	// @todo 尽量避免在编译 addon 时由于参数或类型不一致导致失败，在后续完成 ...
+	// @todo Compare Golang source files with json configuration for consistency
+	// @todo Avoid compilation failures caused by mismatched parameters or types; to be completed later ...
 	//clog.Info("Start checking the API of Golang export ...")
 	//clog.Success("Checking the API of Golang export done ~")
 

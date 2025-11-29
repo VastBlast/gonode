@@ -6,7 +6,7 @@ import (
 	"github.com/wenlng/gonacli/content/args/argasync"
 )
 
-// 生成线程入口代码
+// Generate thread entry code
 func genWorkThreadCode(
 	export config.Export,
 	workName string,

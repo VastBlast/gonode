@@ -21,7 +21,7 @@ func FixCGOWithWindow(cfgs config.Config) bool {
 	}
 	_ = tools.RemoveFiles(paths)
 
-	// 重命名
+	// Rename header file
 	_ = tools.RenameFile(headerFilePath, bakHeaderFilePath)
 
 	return FixCGOHeaderFile(bakHeaderFilePath, outputDir, headerFileName)

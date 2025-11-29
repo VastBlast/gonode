@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// 生成处理体
+// Generate handler body
 func GenHandleReturnFloatCode(method string, args []string, endCode string) string {
 	code := tools.FormatCodeIndentLn(`float wg_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 	code += endCode
@@ -15,7 +15,7 @@ func GenHandleReturnFloatCode(method string, args []string, endCode string) stri
 	return code
 }
 
-// 生成-返回数字型
+// Generate return code for float type
 func GenReturnFloatTypeCode(export config.Export) string {
 	methodName := export.Name
 	args := export.Args

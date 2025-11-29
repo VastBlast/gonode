@@ -4,7 +4,7 @@ import (
 	"github.com/wenlng/gonacli/config"
 )
 
-// 生成线程执行代码
+// Generate async work execution code
 func genExecuteWorkCode(export config.Export, executeWorkName string, structDataName string) string {
 	handlerCode, endCode := genHandlerCode(export)
 

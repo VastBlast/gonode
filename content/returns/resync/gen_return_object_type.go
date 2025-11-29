@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// 生成处理体
+// Generate handler body
 func GenHandleReturnObjectCode(method string, args []string, preCode string) string {
 	code := tools.FormatCodeIndentLn(`string wg_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 
@@ -17,7 +17,7 @@ func GenHandleReturnObjectCode(method string, args []string, preCode string) str
 	return code
 }
 
-// 生成-返回数字型
+// Generate return code for object type
 func GenReturnObjectTypeCode(export config.Export) string {
 	methodName := export.Name
 	args := export.Args

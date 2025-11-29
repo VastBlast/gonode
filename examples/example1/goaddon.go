@@ -9,57 +9,57 @@ import (
 
 //export IntSum32
 func IntSum32(x, y int32) C.int {
-	// 传入 int32 返回 int32
+	// Accept int32 and return int32
 	return C.int(x + y)
 }
 
 //export IntSum64
 func IntSum64(x, y int64) C.longlong {
-	// 传入 int64  返回 int64
+	// Accept int64 and return int64
 	return C.longlong(x + y)
 }
 
 //export UintSum32
 func UintSum32(x, y uint32) C.uint {
-	// 传入 uint32  返回 uint32
+	// Accept uint32 and return uint32
 	return C.uint(x + y)
 }
 
 //export CompareInt
 func CompareInt(x, y int32) bool {
-	// 传入 int32  返回 boolean
+	// Accept int32 and return boolean
 	return x > y
 }
 
 //export FloatSum
 func FloatSum(x, y float32) C.float {
-	// 传入 float  返回 float
+	// Accept float and return float
 	return C.float(x + y)
 }
 
 //export DoubleSum
 func DoubleSum(x, y float64) C.double {
-	// 传入 double  返回 double
+	// Accept double and return double
 	return C.double(x + y)
 }
 
 //export FormatStr
 func FormatStr(s *C.char) *C.char {
-	// 传入 string  返回 string
+	// Accept string and return string
 	ss := C.GoString(s)
 	return C.CString("golang out >>> " + ss)
 }
 
 //export EmptyString
 func EmptyString(s *C.char) bool {
-	// 传入 string  返回 boolean
+	// Accept string and return boolean
 	ss := C.GoString(s)
 	return len(ss) <= 0
 }
 
 //export FilterMap
 func FilterMap(s *C.char) *C.char {
-	// 传入 object  返回 object
+	// Accept object and return object
 	ss := C.GoString(s)
 	fmt.Println(fmt.Sprintf("golang out >>> %s", string(ss)))
 
@@ -84,7 +84,7 @@ func FilterMap(s *C.char) *C.char {
 
 //export CountMap
 func CountMap(s *C.char) C.int {
-	// 传入 object  返回 int32
+	// Accept object and return int32
 	ss := C.GoString(s)
 	fmt.Println(fmt.Sprintf("golang out >>> %s", string(ss)))
 
@@ -100,7 +100,7 @@ func CountMap(s *C.char) C.int {
 
 //export IsMapType
 func IsMapType(s *C.char) bool {
-	// 传入 object  返回 boolean
+	// Accept object and return boolean
 	ss := C.GoString(s)
 	fmt.Println(fmt.Sprintf("golang out >>> %s", string(ss)))
 
@@ -115,7 +115,7 @@ func IsMapType(s *C.char) bool {
 
 //export FilterSlice
 func FilterSlice(s *C.char) *C.char {
-	// 传入 array  返回 array
+	// Accept array and return array
 	ss := C.GoString(s)
 	fmt.Println("golang out >>> slice len: ", ss, len(ss))
 
@@ -128,7 +128,7 @@ func FilterSlice(s *C.char) *C.char {
 
 	var m = make([]interface{}, 2)
 	m[0] = "hello"
-	m[1] = "wold"
+	m[1] = "world"
 
 	jsonStr, err := json.Marshal(m)
 	if err != nil {
@@ -142,7 +142,7 @@ func FilterSlice(s *C.char) *C.char {
 
 //export CountSlice
 func CountSlice(s *C.char) C.int {
-	// 传入 array  返回 int32
+	// Accept array and return int32
 	ss := C.GoString(s)
 	fmt.Println("golang out >>> slice len: ", ss, len(ss))
 
@@ -158,7 +158,7 @@ func CountSlice(s *C.char) C.int {
 
 //export IsSliceType
 func IsSliceType(s *C.char) bool {
-	// 传入 object  返回 boolean
+	// Accept object and return boolean
 	ss := C.GoString(s)
 	fmt.Println(fmt.Sprintf("golang out >>> %s", string(ss)))
 
@@ -179,12 +179,12 @@ type CallbackOutput struct {
 var callbackCount = 0
 
 // ===========================
-// 同步执行
+// Synchronous execution
 
 //export  SyncCallbackReStr
 func SyncCallbackReStr(arg *C.char) *C.char {
-	// 同步执行，会发生主线程阻塞
-	// 传入 string，返回 string
+	// Runs synchronously and blocks the main thread
+	// Accept string and return string
 	result := ""
 	ch := make(chan bool)
 
@@ -195,10 +195,10 @@ func SyncCallbackReStr(arg *C.char) *C.char {
 		fmt.Println("golang out >>> run", curCount, C.GoString(arg))
 		time.Sleep(time.Duration(2) * time.Second)
 		var co CallbackOutput
-		co.Data = "你好 wait return hello"
+		co.Data = "hello wait return hello"
 
 		if curCount%2 == 1 {
-			co.Data = "你好 wait return wold"
+			co.Data = "hello wait return world"
 		}
 
 		co.Output = fmt.Sprintf("%d", curCount)
@@ -216,8 +216,8 @@ func SyncCallbackReStr(arg *C.char) *C.char {
 
 //export SyncCallbackReArr
 func SyncCallbackReArr(arg *C.char) *C.char {
-	// 同步执行，会发生主线程阻塞
-	// 传入 array，返回 array
+	// Runs synchronously and blocks the main thread
+	// Accept array and return array
 	result := ""
 	ch := make(chan bool)
 	ss := C.GoString(arg)
@@ -237,7 +237,7 @@ func SyncCallbackReArr(arg *C.char) *C.char {
 
 		var m = make([]interface{}, 3)
 		m[0] = "hello"
-		m[1] = "wold"
+		m[1] = "world"
 		m[2] = curCount
 
 		jsonStr, err := json.Marshal(m)
@@ -255,8 +255,8 @@ func SyncCallbackReArr(arg *C.char) *C.char {
 
 //export SyncCallbackReObject
 func SyncCallbackReObject(arg *C.char) *C.char {
-	// 同步执行，会发生主线程阻塞
-	// 传入 object，返回 object
+	// Runs synchronously and blocks the main thread
+	// Accept object and return object
 	result := ""
 	ch := make(chan bool)
 	ss := C.GoString(arg)
@@ -276,7 +276,7 @@ func SyncCallbackReObject(arg *C.char) *C.char {
 
 		var m = make(map[string]interface{}, 3)
 		m["k1"] = "hello"
-		m["k2"] = "wold"
+		m["k2"] = "world"
 		m["k3"] = curCount
 
 		jsonStr, err := json.Marshal(m)
@@ -294,8 +294,8 @@ func SyncCallbackReObject(arg *C.char) *C.char {
 
 //export SyncCallbackReCount
 func SyncCallbackReCount(arg *C.char) C.int {
-	// 同步执行，会发生主线程阻塞
-	// 传入 string，返回 int32
+	// Runs synchronously and blocks the main thread
+	// Accept string and return int32
 	result := 0
 	ch := make(chan bool)
 
@@ -315,8 +315,8 @@ func SyncCallbackReCount(arg *C.char) C.int {
 
 //export SyncCallbackReBool
 func SyncCallbackReBool(arg *C.char) bool {
-	// 同步执行，会发生主线程阻塞
-	// 传入 string，返回 boolean
+	// Runs synchronously and blocks the main thread
+	// Accept string and return boolean
 	result := false
 	ch := make(chan bool)
 
@@ -336,8 +336,8 @@ func SyncCallbackReBool(arg *C.char) bool {
 
 //export SyncCallbackSleep
 func SyncCallbackSleep(t int32) bool {
-	// 同步执行，会发生主线程阻塞
-	// 传入 int32，返回 boolean
+	// Runs synchronously and blocks the main thread
+	// Accept int32 and return boolean
 	ch := make(chan bool)
 
 	go func() {
@@ -353,65 +353,65 @@ func SyncCallbackSleep(t int32) bool {
 	return true
 }
 
-// =========== 异步
+// =========== Async
 
 //export  ASyncCallbackReStr
 func ASyncCallbackReStr(arg *C.char, cbFuncStr *C.char) *C.char {
-	// 异步执行，不会阻塞主线程
-	// 传入 string string，返回 string
+	// Runs asynchronously without blocking the main thread
+	// Accepts string and string, returns string
 	return SyncCallbackReStr(arg)
 }
 
 //export ASyncCallbackReIntSum64
 func ASyncCallbackReIntSum64(x, y int64, cbFuncStr *C.char) C.longlong {
-	// 传入 int64  返回 int64
+	// Accept int64 and return int64
 	SyncCallbackSleep(1)
 	return C.longlong(x + y)
 }
 
 //export ASyncCallbackReUintSum32
 func ASyncCallbackReUintSum32(x, y uint32, cbFuncStr *C.char) C.uint {
-	// 传入 uint32  返回 uint32
+	// Accept uint32 and return uint32
 	SyncCallbackSleep(1)
 	return C.uint(x + y)
 }
 
 //export ASyncCallbackReArr
 func ASyncCallbackReArr(arg *C.char, cbFuncStr *C.char) *C.char {
-	// 异步执行，不会阻塞主线程
-	// 传入 string string，返回 array
+	// Runs asynchronously without blocking the main thread
+	// Accepts string and string, returns array
 	fmt.Println("golang out >>> cbFuncStr = ", C.GoString(cbFuncStr))
 	return SyncCallbackReArr(arg)
 }
 
 //export ASyncCallbackReObject
 func ASyncCallbackReObject(arg *C.char, cbFuncStr *C.char) *C.char {
-	// 异步执行，不会阻塞主线程
-	// 传入 object string，返回 object
+	// Runs asynchronously without blocking the main thread
+	// Accepts object and string, returns object
 	fmt.Println("golang out >>> cbFuncStr = ", C.GoString(cbFuncStr))
 	return SyncCallbackReObject(arg)
 }
 
 //export ASyncCallbackReCount
 func ASyncCallbackReCount(arg *C.char, cbFuncStr *C.char) C.int {
-	// 异步执行，不会阻塞主线程
-	// 传入 string string ，返回int32
+	// Runs asynchronously without blocking the main thread
+	// Accepts string and string, returns int32
 	fmt.Println("golang out >>> cbFuncStr = ", C.GoString(cbFuncStr))
 	return SyncCallbackReCount(arg)
 }
 
 //export ASyncCallbackReBool
 func ASyncCallbackReBool(arg *C.char, cbFuncStr *C.char) bool {
-	// 异步执行，不会阻塞主线程
-	// 传入 string string，返回 boolean
+	// Runs asynchronously without blocking the main thread
+	// Accepts string and string, returns boolean
 	fmt.Println("golang out >>> cbFuncStr = ", C.GoString(cbFuncStr))
 	return SyncCallbackReBool(arg)
 }
 
 //export ASyncCallbackMArg
 func ASyncCallbackMArg(arg *C.char, cbFuncStr *C.char, ext *C.char) bool {
-	// 异步执行，不会阻塞主线程
-	// 传入 string string，返回 boolean
+	// Runs asynchronously without blocking the main thread
+	// Accepts string and string, returns boolean
 	fmt.Println("golang out >>> cbFuncStr = ", C.GoString(cbFuncStr))
 	return SyncCallbackReBool(arg)
 }

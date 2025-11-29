@@ -55,8 +55,8 @@ const obj = {"name": "awen", "age": "24"}
 //     console.log(">>>>>>", resBool)
 // }, "aaa")
 
-// 对象将会被处理成此种方式传递到 golang map 中
-// 但 golang 返回 map 时只处理第一层对象，如果有多层时，建议使用 arraybuffer 或 string 从 golang 返回
+// Objects are passed to the Golang map in this structure
+// Golang only handles the first level when returning a map; for nested data, return an arraybuffer or string from Golang instead
 // {"name":"Awen_obj","age":"20","list":["ccc","bbb"],"obj":{"aaa":"aaa","ddd":"ddd"},"obj2":{"aaa":"aaa","ddd":"ddd"}}
 // const mR = goaddon.filterMap({
 //     name: 'Awen_obj',
@@ -74,8 +74,8 @@ const obj = {"name": "awen", "age": "24"}
 // console.log(mR)
 
 
-// 数组将会被处理成此种方式传递到 golang slice 中
-// 但 golang 返回 slice 时只处理第一层数组，如果有多层时，建议使用 arraybuffer 或 string 从 golang 返回
+// Arrays are passed to the Golang slice in this structure
+// Golang only handles the first level when returning a slice; for nested data, return an arraybuffer or string from Golang instead
 //  array ["Awen_arr","20","awen","1997","[object Object]"]
 //  array2 ["Awen_arr","20",["awen","1997"],"[object Object]"]
 // const sR = goaddon.filterSlice([

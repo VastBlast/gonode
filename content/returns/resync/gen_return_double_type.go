@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// 生成处理体
+// Generate handler body
 func GenHandleReturnDoubleCode(method string, args []string, endCode string) string {
 	code := tools.FormatCodeIndentLn(`double wg_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 	code += endCode
@@ -15,7 +15,7 @@ func GenHandleReturnDoubleCode(method string, args []string, endCode string) str
 	return code
 }
 
-// 生成-返回数字型
+// Generate return code for double type
 func GenReturnDoubleTypeCode(export config.Export) string {
 	methodName := export.Name
 	args := export.Args

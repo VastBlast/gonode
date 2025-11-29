@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// 生成处理体
+// Generate handler body
 func GenHandleReturnBooleanCode(method string, args []string, endCode string) string {
 	code := tools.FormatCodeIndentLn(`bool wg_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 	code += endCode
@@ -15,7 +15,7 @@ func GenHandleReturnBooleanCode(method string, args []string, endCode string) st
 	return code
 }
 
-// 生成-返回数字型
+// Generate return code for boolean type
 func GenReturnBooleanTypeCode(export config.Export) string {
 	methodName := export.Name
 	args := export.Args

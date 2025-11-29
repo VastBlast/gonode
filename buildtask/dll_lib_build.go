@@ -11,13 +11,13 @@ import (
 func buildToDll(cfgs config.Config) bool {
 	path := tools.FormatDirPath(cfgs.OutPut)
 
-	// 检测是否存在执行过 gonacli generate 命令
+	// Check whether "gonacli generate" has been run
 	if !tools.Exists(filepath.Join(path, cfgs.Name+".cc")) {
 		clog.Error("You need to run \"gonacli generate\" generate c/c++ bridge code.")
 		return false
 	}
 
-	// 检测是否存在执行过 gonacli build 命令
+	// Check whether "gonacli build" has been run
 	if !tools.Exists(filepath.Join(path, cfgs.Name+".a")) {
 		clog.Error("You need to run \"gonacli build\" build golang lib.")
 		return false
@@ -28,7 +28,7 @@ func buildToDll(cfgs config.Config) bool {
 	targetLibName := cfgs.Name + ".dll"
 	targetLibName2 := cfgs.Name + ".dll.a"
 
-	// 清空生成的相关文件
+	// Remove previously generated artifacts
 	paths := []string{
 		filepath.Join(path, defFile),
 		filepath.Join(path, targetLibName),
@@ -37,12 +37,12 @@ func buildToDll(cfgs config.Config) bool {
 	_ = tools.RemoveFiles(paths)
 
 	clog.Info("Start build library ...")
-	// 生成 def 文件
+	// Generate def file
 	if e := genBuildExportNameToDef(cfgs.Exports, path, defFile); !e {
 		return false
 	}
 
-	// 生成dll
+	// Build dll
 	if d := buildDll(path, defFile, libFile, targetLibName, targetLibName2); !d {
 		clog.Warning("Please check whether the \"gcc\" command is executed correctly.")
 		return false

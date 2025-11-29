@@ -1,6 +1,6 @@
 package base
 
-// 生成头文件
+// Generate header file content
 func GenHeaderFileCode(headerFile string) string {
 	var code = `#include <napi.h>
 #include <string>

@@ -6,7 +6,7 @@ import (
 	"github.com/wenlng/gonacli/tools"
 )
 
-// js 回调参数
+// JS callback arguments
 func genJsCallbackArgs(export config.Export) string {
 	returnType := export.ReturnType
 
@@ -43,7 +43,7 @@ func genJsCallbackArgs(export config.Export) string {
 	return code
 }
 
-// js 回调
+// JS callback
 func genJsCallbackCode(export config.Export, jsCallbackName string) string {
 	parseCode, parsePreCode := genResultParseCode(export.ReturnType)
 	code := `

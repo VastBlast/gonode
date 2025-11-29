@@ -8,7 +8,7 @@ import (
 	"github.com/wenlng/gonacli/tools"
 )
 
-// 生成参数
+// Generate argument parsing
 func genHandlerArgCode(arg config.Arg, index int) (string, string) {
 	code := ""
 	preCode := ""
@@ -56,7 +56,7 @@ func genHandlerArgCode(arg config.Arg, index int) (string, string) {
 	return code, preCode
 }
 
-// 业务逻辑
+// Generate handler logic
 func genHandlerCode(export config.Export) (string, string) {
 	methodName := export.Name
 	returnType := export.ReturnType

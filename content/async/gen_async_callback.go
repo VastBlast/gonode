@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// 生成注册代码
+// Generate registration code
 func genRegisterCode(name string, jsCallName string, workName string) (string, string) {
 	funName := "register_" + strings.ToLower(name)
 	code := `
@@ -20,7 +20,7 @@ void ` + funName + `(Env env, Object exports){
 	return code, funName + "(env, exports);"
 }
 
-// 参数解析
+// Parse result arguments
 func genResultParseCode(returnType string) (string, string) {
 	code := ""
 	preCode := ""
@@ -70,7 +70,7 @@ typedef struct{
 	return code
 }
 
-// 生成-返回数字型
+// Generate async callback code
 func GenAsyncCallbackCode(export config.Export) (string, string) {
 	methodName := export.Name
 	//args := export.Args
@@ -95,7 +95,7 @@ func GenAsyncCallbackCode(export config.Export) (string, string) {
 		structDataName,
 	)
 
-	// 生成注册代码
+	// Generate registration code
 	rCode, rFunc := genRegisterCode(methodName, export.JsCallName, workName)
 	code += rCode
 

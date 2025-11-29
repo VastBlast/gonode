@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-// 生成处理体
+// Generate handler body
 func GenHandleReturnArrayBufferCode(method string, args []string, preCode string) string {
-	// 转换成数组buffer
+	// Convert to array buffer
 	code := `
   void * wg_res_ = ` + method + `(` + strings.Join(args, ",") + `);
   char *wg_ab_ = (char*) wg_res_;
@@ -21,7 +21,7 @@ func GenHandleReturnArrayBufferCode(method string, args []string, preCode string
 	return code
 }
 
-// 生成-返回数字型
+// Generate return code for array buffer type
 func GenReturnArrayBufferTypeCode(export config.Export) string {
 	methodName := export.Name
 	args := export.Args

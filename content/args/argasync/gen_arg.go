@@ -6,14 +6,14 @@ import (
 	"github.com/wenlng/gonacli/content/validate"
 )
 
-// 生成校验代码
+// Generate validation code
 func genCheckInputArgCode(code string, requireCode string, validateCode string, index int) string {
 	sIndex := fmt.Sprintf("%d", index)
 	return `
   Value wg_v` + sIndex + ` = Value(wg_env, wg_args[` + sIndex + `]);` + requireCode + validateCode + code
 }
 
-// 生成参数
+// Parse arguments
 func GenParseInputArgCode(arg config.Arg, index int) (string, string) {
 	code := ""
 	preCode := ""
@@ -21,7 +21,7 @@ func GenParseInputArgCode(arg config.Arg, index int) (string, string) {
 	beforeCode := ""
 	sIndex := fmt.Sprintf("%d", index)
 
-	// 生成校验
+	// Generate validation
 	if arg.IsRequire {
 		beforeCode += validate.GenAsyncRequireWithIndexCode(index)
 	}
