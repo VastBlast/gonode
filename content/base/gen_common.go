@@ -44,48 +44,20 @@ static void wg_catch_err(napi_env env, napi_status status) {
 }`
 }
 
-func genStringSplitCode() string {
-	return `
-// ------------- genStringSplit -----------
-void wg_string_split(const string& str, const char split, vector<string>& res){
-  if (str.empty()) return;
-  res.reserve(res.size() + str.size() / 2 + 1);
-  size_t start = 0;
-  size_t pos = str.find(split, start);
-  while (pos != string::npos){
-	res.emplace_back(str.substr(start, pos - start));
-	start = pos + 1;
-	pos = str.find(split, start);
-  }
-  res.emplace_back(str.substr(start));
-}`
-}
-
 func genArrayToStringCode() string {
 	return `
 // ------------- genStringToArray2 -----------
-string wg_array_to_string(Array arr) {
-  const uint32_t len = arr.Length();
-  string res;
-  res.reserve(len * 4 + 2);
-  res.push_back('[');
-  for(uint32_t i = 0; i < len; i++){
-	if (i > 0) {
-	  res.push_back(',');
-	}
-	Value v = arr[i];
-	if (v.IsArray()){
-	  Array arr2 = v.As<Array>();
-	  res += wg_array_to_string(arr2);
-	} else {
-	  string ss = v.ToString();
-	  res.push_back('"');
-	  res += ss;
-	  res.push_back('"');
-	}
+string wg_array_to_string(Array arr, Env env) {
+  try {
+    Object wg_json = env.Global().Get("JSON").As<Object>();
+    Function wg_stringify = wg_json.Get("stringify").As<Function>();
+    Value wg_res = wg_stringify.Call(wg_json, { arr });
+    if (wg_res.IsString()) {
+      return wg_res.As<String>().Utf8Value();
+    }
+  } catch (Error& e) {
   }
-  res.push_back(']');
-  return res;
+  return "[]";
 }`
 }
 
@@ -93,97 +65,34 @@ func genStringToArrayCode() string {
 	return `
 // ------------- genStringToArray -----------
 Array wg_string_to_array(string str, Env env) {
-  Array arr = Array::New(env);
-  vector<string> strList;
-  strList.reserve(str.size() / 2 + 1);
-  if (str == "") return arr;
-  for (char &c : str) {
-    if (c == '[' || c == ']') {
-      c = ',';
+  if (str == "") return Array::New(env);
+  try {
+    Object wg_json = env.Global().Get("JSON").As<Object>();
+    Function wg_parse = wg_json.Get("parse").As<Function>();
+    Value wg_res = wg_parse.Call(wg_json, { String::New(env, str) });
+    if (wg_res.IsArray()) {
+      return wg_res.As<Array>();
     }
-  }  
-  wg_string_split(str, ',', strList);
-  int index = 0;
-  for (auto s : strList) {
-    if (s.size() > 0) {
-      int _spos = s.find("\"");
-      s = s.substr(_spos + 1);
-      int _epos = s.find("\"");
-      s = s.substr(0, _epos);
-      arr.Set(index, String::New(env, s));
-      index++;
-    }
+  } catch (Error& e) {
   }
-  return arr;
-}`
-}
-
-func genObjectArrToStringCode() string {
-	return `
-// ------------- genObjectArrToString -----------
-string wg_object_to_string(Object objs);
-string wg_object_array_to_string(Array arr) {
-  const uint32_t len = arr.Length();
-  string res;
-  res.reserve(len * 6 + 2);
-  res.push_back('[');
-  for(uint32_t i = 0; i < len; i++){
-	if (i > 0) {
-	  res.push_back(',');
-	}
-	Value v = arr[i];
-	if (v.IsArray()){
-	  Array arr2 = v.As<Array>();
-	  res += wg_object_array_to_string(arr2);
-	} else if (v.IsObject()){
-	  Object obj2 = v.As<Object>();
-	  res += wg_object_to_string(obj2); 
-	} else {
-	  string ss = v.ToString();
-	  res.push_back('"');
-	  res += ss;
-	  res.push_back('"');
-	}
-  }
-  res.push_back(']');
-  return res;
+  return Array::New(env);
 }`
 }
 
 func genObjectToStringCode() string {
 	return `
 // ------------- genObjectToString -----------
-string wg_object_to_string(Object objs) {
-  Array keyArr = objs.GetPropertyNames();
-  const uint32_t len = keyArr.Length();
-  string res;
-  res.reserve(len * 8 + 2);
-  res.push_back('{');
-  for(uint32_t i = 0; i < len; i++){
-	if (i > 0) {
-	  res.push_back(',');
-	}
-	Value key = keyArr[i];
-	Value v = objs.Get(key);
-	string name = key.As<String>().Utf8Value();
-	res.push_back('"');
-	res += name;
-	res += "\":";
-	if (v.IsArray()) {
-	  Array arr = v.As<Array>();
-	  res += wg_object_array_to_string(arr);
-	} else if (v.IsObject()){
-	  Object obj2 = v.As<Object>();
-	  res += wg_object_to_string(obj2); 
-	} else {
-	  string ss = v.ToString();
-	  res.push_back('"');
-	  res += ss;
-	  res.push_back('"');
-	}
+string wg_object_to_string(Object objs, Env env) {
+  try {
+    Object wg_json = env.Global().Get("JSON").As<Object>();
+    Function wg_stringify = wg_json.Get("stringify").As<Function>();
+    Value wg_res = wg_stringify.Call(wg_json, { objs });
+    if (wg_res.IsString()) {
+      return wg_res.As<String>().Utf8Value();
+    }
+  } catch (Error& e) {
   }
-  res.push_back('}');
-  return res;
+  return "{}";
 }`
 }
 
@@ -191,32 +100,17 @@ func genStringToObject() string {
 	code := `
 // ------------- genStringToObject -----------
  Object wg_string_to_object(string str, Env env) {
-  Object obj = Object::New(env);
-  vector<string> strList;
-  strList.reserve(str.size() / 2 + 1);
-  if (str == "") return obj;
-  for (char &c : str) {
-    if (c == '{' || c == '}') {
-      c = ',';
+  if (str == "") return Object::New(env);
+  try {
+    Object wg_json = env.Global().Get("JSON").As<Object>();
+    Function wg_parse = wg_json.Get("parse").As<Function>();
+    Value wg_res = wg_parse.Call(wg_json, { String::New(env, str) });
+    if (wg_res.IsObject()) {
+      return wg_res.As<Object>();
     }
-  }  
-  wg_string_split(str, ',', strList);
-  vector<string> keyValue;
-  keyValue.reserve(2);
-  for (auto s : strList) {
-    size_t pos;
-    if (s.size() > 0) {
-      while ((pos = s.find("\"")) != string::npos) {
-        s.replace(pos, 1, "");
-      }
-      keyValue.clear();
-      wg_string_split(s, ':', keyValue);
-      string key = !keyValue.empty() ? keyValue[0] : "";
-      string value = keyValue.size() > 1 ? keyValue[1] : "";
-      obj.Set(String::New(env, key), String::New(env, value));
-    }
+  } catch (Error& e) {
   }
-  return obj;
+  return Object::New(env);
 }`
 
 	return code
@@ -227,11 +121,9 @@ func GenBeforeCode(hasAsync bool) string {
 	code += genWgAddonDataCode()
 	//code += genBuildGoStringCode()
 	//code += genBuildGoSliceCode()
-	code += genStringSplitCode()
 	code += genArrayToStringCode()
 	code += genStringToArrayCode()
 
-	code += genObjectArrToStringCode()
 	code += genObjectToStringCode()
 	code += genStringToObject()
 

@@ -23,7 +23,7 @@ func GenGypFile(cfgs config.Config, bindingName string) bool {
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")"
             ],
-            "defines": [ "NAPI_DISABLE_CPP_EXCEPTIONS" ],
+            "defines": [ "NAPI_DISABLE_CPP_EXCEPTIONS", "NAPI_EXPERIMENTAL" ],
             "libraries": [
                 "../` + cfgs.Name + ext + `"
             ],

@@ -10,7 +10,7 @@ func GenObjectArgTypeCode(name string, index string) (string, string) {
   if (wg_info.Length() > ` + index + `) {
     wg__` + name + ` = wg_info[` + index + `].As<Object>();
   }
-  string wg_` + name + ` = wg_object_to_string(wg__` + name + `);
+  string wg_` + name + ` = wg_object_to_string(wg__` + name + `, wg_env);
   char *` + name + ` = new char[wg_` + name + `.length() + 1];
   strcpy(` + name + `, wg_` + name + `.c_str());`
 

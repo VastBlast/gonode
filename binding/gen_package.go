@@ -19,6 +19,10 @@ func GenPackageFile(cfgs config.Config, packageName string) bool {
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^8.0.0"
+  },
   "devDependencies": {},
   "gypfile": true,
   "gyp": true
