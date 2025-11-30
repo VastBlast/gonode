@@ -6,7 +6,8 @@ import (
 )
 
 func GenAsyncReturnObjectTypeCode() string {
-	return tools.FormatCodeIndentLn(`const string wg_res_ = (char*)wg_data;`, 2)
+	return tools.FormatCodeIndentLn(`const char* wg_raw_res_ = static_cast<char*>(wg_data);
+  string wg_res_ = wg_raw_res_ ? wg_raw_res_ : "";`, 2)
 }
 
 func GenAsyncCallReturnObjectTypeCode(methodName string, argNames []string) string {

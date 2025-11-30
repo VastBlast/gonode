@@ -6,7 +6,8 @@ import (
 )
 
 func GenAsyncReturnStringTypeCode() (string, string) {
-	code := tools.FormatCodeIndentLn(`const string wg__res_ = (char*)wg_data;`, 2)
+	code := tools.FormatCodeIndentLn(`const char* wg_raw_res_ = static_cast<char*>(wg_data);
+  string wg__res_ = wg_raw_res_ ? wg_raw_res_ : "";`, 2)
 
 	pCode := tools.FormatCodeIndentLn(`napi_value wg_res_ = String::New(wg_env, wg__res_);`, 4)
 	//endCode := tools.FormatCodeIndentLn(`delete [] _res_`, 0)

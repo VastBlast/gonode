@@ -2,7 +2,9 @@ package base
 
 // Generate header file content
 func GenHeaderFileCode(headerFile string) string {
-	var code = `#define NAPI_EXPERIMENTAL
+	var code = `#ifndef NAPI_EXPERIMENTAL
+#define NAPI_EXPERIMENTAL
+#endif
 #include <napi.h>
 #include <string>
 #include <cstring>

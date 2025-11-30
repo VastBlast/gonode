@@ -35,19 +35,38 @@ func genWorkThreadCode(
 	code := `
 // ---------- genworkThreadCode
 static napi_value ` + workName + `(napi_env wg_env, napi_callback_info wg_info) {
-  size_t wg_argc = ` + fmt.Sprintf("%d", argc) + `;
+  const size_t wg_expected_argc = ` + fmt.Sprintf("%d", argc) + `;
+  size_t wg_argc = wg_expected_argc;
   size_t wg_cb_arg_index = ` + fmt.Sprintf("%d", cbArgIndex) + `;
-  napi_value wg_args[` + fmt.Sprintf("%d", argc) + `];
+  napi_value wg_args[` + fmt.Sprintf("%d", argc) + `] = {0};
   napi_value wg_work_name;
   napi_status wg_sts;
   ` + structDataName + `* wg_addon = (` + structDataName + `*)malloc(sizeof(*wg_addon));
   wg_addon->work = NULL;
-  wg_addon->argc = wg_argc;
-  for (size_t i = 0; i < wg_argc; i++) {
+  wg_addon->argc = wg_expected_argc;
+  for (size_t i = 0; i < wg_expected_argc; i++) {
     wg_addon->args[i] = NULL;
   }
+  napi_value wg_undefined;
+  wg_catch_err(wg_env, napi_get_undefined(wg_env, &wg_undefined));
+  auto wg_cleanup = [&]() {
+    for (size_t i = 0; i < wg_expected_argc; i++) {
+      if (wg_addon->args[i] != NULL && wg_addon->args[i]->type == 1) {
+        WgAddonArgInfo* info = (WgAddonArgInfo*)wg_addon->args[i];
+        delete [] (char *)info->value;
+      }
+      if (wg_addon->args[i] != NULL) {
+        free(wg_addon->args[i]);
+        wg_addon->args[i] = NULL;
+      }
+    }
+    free(wg_addon);
+  };
   wg_sts = napi_get_cb_info(wg_env, wg_info, &wg_argc, wg_args, NULL, NULL);
   wg_catch_err(wg_env, wg_sts);
+  for (size_t i = wg_argc; i < wg_expected_argc; i++) {
+    wg_args[i] = wg_undefined;
+  }
   napi_value wg_js_cb = wg_args[wg_cb_arg_index];` + inputArgCode + `
   assert(wg_addon->work == NULL && "Only one work item must exist at a time");
   wg_catch_err(wg_env, napi_create_string_utf8(wg_env, "N-API Thread-safe Call from Async Work Item", NAPI_AUTO_LENGTH, &wg_work_name));

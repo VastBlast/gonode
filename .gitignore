@@ -25,3 +25,4 @@ _remark.md
 *.njsproj
 *.sln
 *.sw?
+/.cache
