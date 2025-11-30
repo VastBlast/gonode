@@ -36,19 +36,16 @@ func genCatchErrCode() string {
 // ------------- genCatchErr -----------
 static void wg_catch_err(napi_env env, napi_status status) {
   if (status == napi_ok) return;
+  if (status == napi_pending_exception) {
+    // Let the pending JS exception propagate without aborting the process.
+    return;
+  }
   const napi_extended_error_info* error_info = NULL;
   const char* wg_err_msg = "napi error";
   if (env != NULL && napi_get_last_error_info(env, &error_info) == napi_ok && error_info != NULL && error_info->error_message != NULL) {
     wg_err_msg = error_info->error_message;
   }
   if (env != NULL) {
-    if (status == napi_pending_exception) {
-      napi_value wg_last_exc;
-      if (napi_get_and_clear_last_exception(env, &wg_last_exc) == napi_ok) {
-        napi_fatal_exception(env, wg_last_exc);
-        return;
-      }
-    }
     napi_throw_error(env, NULL, wg_err_msg);
   }
   fprintf(stderr, "addon >>>>> %s\n", wg_err_msg);
@@ -58,7 +55,7 @@ static void wg_catch_err(napi_env env, napi_status status) {
 static void wg_catch_err_bg(napi_status status, const char* label) {
   if (status == napi_ok) return;
   const char* wg_err_msg = label != NULL ? label : "napi async error";
-  napi_fatal_error("gonode_async", NAPI_AUTO_LENGTH, wg_err_msg, NAPI_AUTO_LENGTH);
+  fprintf(stderr, "addon async >>>>> %s (status=%d)\n", wg_err_msg, status);
 }`
 }
 

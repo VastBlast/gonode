@@ -11,6 +11,7 @@ func GenHeaderFileCode(headerFile string) string {
 #include <cstdlib>
 #include <assert.h>
 #include <functional>
+#include <memory>
 
 #include "` + headerFile + `"
 
