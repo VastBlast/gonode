@@ -49,13 +49,33 @@ func genJsCallbackCode(export config.Export, jsCallbackName string) string {
 	code := `
 // ------------ genJsCallbackCode
 static void ` + jsCallbackName + `(napi_env wg_env, napi_value wg_js_cb, void* wg_context, void* wg_data) {
-  (void)wg_context;` + parseCode + `
+  (void)wg_context;
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif` + parseCode + `
   if (wg_env != NULL) {` + parsePreCode + `
     ` + genJsCallbackArgs(export) + `
     napi_value wg_global;
-	napi_get_global(wg_env, &wg_global);
-    wg_catch_err(wg_env, napi_call_function(wg_env, wg_global, wg_js_cb, 1, wg_argv, NULL));
+    napi_status wg_sts = napi_get_global(wg_env, &wg_global);
+    if (wg_sts != napi_ok) {
+      wg_catch_err(wg_env, wg_sts);
+      return;
+    }
+    wg_sts = napi_call_function(wg_env, wg_global, wg_js_cb, 1, wg_argv, NULL);
+    if (wg_sts != napi_ok) {
+      wg_catch_err(wg_env, wg_sts);
+      return;
+    }
   }
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (const Error& wg_ex) {
+    wg_ex.ThrowAsJavaScriptException();
+  } catch (const std::exception& wg_ex) {
+    napi_throw_error(wg_env, NULL, wg_ex.what());
+  } catch (...) {
+    napi_throw_error(wg_env, NULL, "native exception");
+  }
+#endif
 }`
 	return code
 }

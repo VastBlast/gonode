@@ -62,21 +62,65 @@ static napi_value ` + workName + `(napi_env wg_env, napi_callback_info wg_info) 
     }
     free(wg_addon);
   };
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
+  wg_sts = napi_get_undefined(wg_env, &wg_undefined);
+  if (wg_sts != napi_ok) {
+    wg_catch_err(wg_env, wg_sts);
+    wg_cleanup();
+    return NULL;
+  }
   wg_sts = napi_get_cb_info(wg_env, wg_info, &wg_argc, wg_args, NULL, NULL);
-  wg_catch_err(wg_env, wg_sts);
+  if (wg_sts != napi_ok) {
+    wg_catch_err(wg_env, wg_sts);
+    wg_cleanup();
+    return NULL;
+  }
   for (size_t i = wg_argc; i < wg_expected_argc; i++) {
     wg_args[i] = wg_undefined;
   }
   napi_value wg_js_cb = wg_args[wg_cb_arg_index];` + inputArgCode + `
   assert(wg_addon->work == NULL && "Only one work item must exist at a time");
-  wg_catch_err(wg_env, napi_create_string_utf8(wg_env, "N-API Thread-safe Call from Async Work Item", NAPI_AUTO_LENGTH, &wg_work_name));
+  wg_sts = napi_create_string_utf8(wg_env, "N-API Thread-safe Call from Async Work Item", NAPI_AUTO_LENGTH, &wg_work_name);
+  if (wg_sts != napi_ok) {
+    wg_catch_err(wg_env, wg_sts);
+    wg_cleanup();
+    return NULL;
+  }
   wg_sts = napi_create_threadsafe_function(wg_env, wg_js_cb, NULL, wg_work_name, 0, 1, NULL, NULL, NULL, ` + jsCallbackName + `, &(wg_addon->tsfn));
-  wg_catch_err(wg_env, wg_sts);
+  if (wg_sts != napi_ok) {
+    wg_catch_err(wg_env, wg_sts);
+    wg_cleanup();
+    return NULL;
+  }
   wg_sts = napi_create_async_work(wg_env, NULL, wg_work_name, ` + executeworkName + `, ` + workCompleteName + `, wg_addon, &(wg_addon->work));
-  wg_catch_err(wg_env, wg_sts);
+  if (wg_sts != napi_ok) {
+    wg_catch_err(wg_env, wg_sts);
+    napi_release_threadsafe_function(wg_addon->tsfn, napi_tsfn_abort);
+    wg_cleanup();
+    return NULL;
+  }
   wg_sts = napi_queue_async_work(wg_env, wg_addon->work);
-  wg_catch_err(wg_env, wg_sts);
+  if (wg_sts != napi_ok) {
+    wg_catch_err(wg_env, wg_sts);
+    napi_release_threadsafe_function(wg_addon->tsfn, napi_tsfn_abort);
+    wg_catch_err(wg_env, napi_delete_async_work(wg_env, wg_addon->work));
+    wg_cleanup();
+    return NULL;
+  }
   return NULL;
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (const Error& wg_ex) {
+    wg_ex.ThrowAsJavaScriptException();
+  } catch (const std::exception& wg_ex) {
+    napi_throw_error(wg_env, NULL, wg_ex.what());
+  } catch (...) {
+    napi_throw_error(wg_env, NULL, "native exception");
+  }
+  wg_cleanup();
+  return NULL;
+#endif
 }`
 
 	return code
