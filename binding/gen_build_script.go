@@ -98,6 +98,46 @@ for (const dir of [buildDir, nodeGypBuildDir, outDir]) {
   }
 }
 
+// Split GO_BUILD_ARGS respecting quotes so flags like -ldflags "-s -w" stay intact.
+function parseArgs(str) {
+  const out = [];
+  let current = '';
+  let inSingle = false;
+  let inDouble = false;
+  let escape = false;
+  for (const ch of str) {
+    if (escape) {
+      current += ch;
+      escape = false;
+      continue;
+    }
+    if (ch === '\\') {
+      escape = true;
+      continue;
+    }
+    if (ch === '\'' && !inDouble) {
+      inSingle = !inSingle;
+      continue;
+    }
+    if (ch === '"' && !inSingle) {
+      inDouble = !inDouble;
+      continue;
+    }
+    if (/\s/.test(ch) && !inSingle && !inDouble) {
+      if (current) {
+        out.push(current);
+        current = '';
+      }
+      continue;
+    }
+    current += ch;
+  }
+  if (current) {
+    out.push(current);
+  }
+  return out;
+}
+
 function run(cmd, args) {
   const result = spawnSync(cmd, args, { cwd: rootDir, stdio: 'inherit' });
   if (result.error) {
@@ -200,7 +240,7 @@ function buildGo() {
     throw new Error('Go sources are missing from this package. Ensure the following files are published: ' + missingSources.join(', '));
   }
 
-  const goBuildArgs = (process.env.GO_BUILD_ARGS || '').trim().split(/\s+/).filter(Boolean);
+  const goBuildArgs = parseArgs(process.env.GO_BUILD_ARGS || '');
   const args = ['build', '-buildmode=c-archive', ...goBuildArgs, '-o', join(buildDir, config.name + '.a')];
   for (const src of config.sources) {
     args.push(join(workDir, src));
