@@ -1,7 +1,11 @@
 module github.com/VastBlast/gonode
 
-go 1.16
+go 1.25.4
+
+require github.com/jinzhu/configor v1.2.2
 
 require (
-	github.com/jinzhu/configor v1.2.1 // indirect
+	github.com/BurntSushi/toml v1.2.0 // indirect
+	gopkg.in/yaml.v2 v2.2.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
