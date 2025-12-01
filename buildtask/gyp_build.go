@@ -47,18 +47,6 @@ func makeToAddon(cfgs config.Config, args string) bool {
 		return false
 	}
 
-	// On Windows, verify whether "gonode msvc" has been run
-	if tools.IsWindowsOs() {
-		if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".lib")) {
-			clog.Error("You need to run \"gonode msvc\" build lib on windows OS.")
-			return false
-		}
-		if !tools.Exists(filepath.Join(goBuildPath, cfgs.Name+".dll")) {
-			clog.Error("You need to run \"gonode msvc\" build dll on windows OS.")
-			return false
-		}
-	}
-
 	// Remove previously generated artifacts
 	files := []string{
 		filepath.Join(rootPath, "package-lock.json"),
@@ -77,12 +65,6 @@ func makeToAddon(cfgs config.Config, args string) bool {
 	}
 	clog.Info("Make addon done ~")
 	clog.Info(msg)
-
-	if tools.IsWindowsOs() {
-		if ok := moveDllNearNodeBinary(goBuildPath, cfgs.Name, buildOutputPath); !ok {
-			return false
-		}
-	}
 
 	if err := copyBuiltArtifacts(goBuildPath, buildOutputPath, targetDir, cfgs.Name); err != nil {
 		clog.Error(err)
@@ -116,31 +98,6 @@ func hasExistingBuild(targetDir string) bool {
 }
 
 func moveDllNearNodeBinary(prebuildPath string, name string, buildOutputPath string) bool {
-	dllPath := filepath.Join(prebuildPath, name+".dll")
-	if !tools.Exists(dllPath) {
-		clog.Error("The dll file is missing, please execute \"gonode msvc\" first.")
-		return false
-	}
-
-	nodeBins, err := filepath.Glob(filepath.Join(buildOutputPath, "*", name+".node"))
-	if err != nil {
-		clog.Error(err)
-		return false
-	}
-
-	if len(nodeBins) == 0 {
-		clog.Error("The addon binary was not generated, please confirm node-gyp build output.")
-		return false
-	}
-
-	for _, nodeBin := range nodeBins {
-		targetPath := filepath.Join(filepath.Dir(nodeBin), name+".dll")
-		if err = copyFile(dllPath, targetPath); err != nil {
-			clog.Error(err)
-			return false
-		}
-	}
-
 	return true
 }
 
@@ -170,14 +127,6 @@ func copyBuiltArtifacts(goBuildPath string, buildOutputPath string, targetDir st
 					return copyErr
 				}
 			}
-		}
-	}
-
-	dllPath := filepath.Join(goBuildPath, name+".dll")
-	if tools.Exists(dllPath) {
-		dst := filepath.Join(targetDir, name+".dll")
-		if err := tools.CopyFile(dllPath, dst); err != nil {
-			return err
 		}
 	}
 

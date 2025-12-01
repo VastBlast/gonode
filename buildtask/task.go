@@ -2,12 +2,11 @@ package buildtask
 
 import (
 	"fmt"
-	"github.com/jinzhu/configor"
-	"github.com/VastBlast/gonode/buildtask/compatible"
 	"github.com/VastBlast/gonode/check"
 	"github.com/VastBlast/gonode/clog"
 	"github.com/VastBlast/gonode/config"
 	"github.com/VastBlast/gonode/tools"
+	"github.com/jinzhu/configor"
 	"path/filepath"
 	"strings"
 )
@@ -115,15 +114,6 @@ func RunGenerateTask(config string) bool {
 	return runGenerateStep()
 }
 
-// Initialize npm install dependencies
-func RunInstallTask(config string) bool {
-	if ok := parseAndCheck(config); !ok {
-		return false
-	}
-
-	return runInstallStep()
-}
-
 // Compile node addon
 func RunMakeTask(config string, args string) bool {
 	if ok := parseAndCheck(config); !ok {
@@ -133,14 +123,13 @@ func RunMakeTask(config string, args string) bool {
 	return runMakeStep(args)
 }
 
-// Run all steps: clean -> generate -> build -> install -> (windows only) msvc -> make
-func RunAllTask(config string, buildArgs string, makeArgs string, useVS bool, msvc32Vs bool) bool {
+// Run all steps: clean -> generate -> build
+func RunAllTask(config string, buildArgs string) bool {
 	if ok := parseAndCheck(config); !ok {
 		return false
 	}
 
 	buildArgs = normalizeArgs(buildArgs)
-	makeArgs = normalizeArgs(makeArgs)
 
 	if done := cleanOutput(cfgs); !done {
 		clog.Error("Fail clean output directory!")
@@ -155,34 +144,9 @@ func RunAllTask(config string, buildArgs string, makeArgs string, useVS bool, ms
 		return false
 	}
 
-	if ok := runInstallStep(); !ok {
-		return false
-	}
-
-	if tools.IsWindowsOs() {
-		if ok := runMsvcStep(useVS, msvc32Vs); !ok {
-			return false
-		}
-	} else {
-		clog.Info("Skip msvc step on non-windows platform")
-	}
-
-	if ok := runMakeStep(makeArgs); !ok {
-		return false
-	}
-
 	clog.Success("Successfully completed all tasks ~")
 	fmt.Println("")
 	return true
-}
-
-// Windows environment compatibility handling
-func RunMsvcTask(config string, useVS bool, msvc32Vs bool) bool {
-	if ok := parseAndCheck(config); !ok {
-		return false
-	}
-
-	return runMsvcStep(useVS, msvc32Vs)
 }
 
 func runGenerateStep() bool {
@@ -198,24 +162,12 @@ func runGenerateStep() bool {
 
 func runBuildStep(args string) bool {
 	args = normalizeArgs(args)
-
-	if d := buildGoToLibrary(cfgs, args); !d {
-		clog.Error("Fail build golang lib!")
+	if ok := runNpmInstall(cfgs, args); !ok {
+		clog.Error("Fail build addon via npm install!")
 		return false
 	}
 
-	clog.Success("Successfully build golang lib ~")
-	fmt.Println("")
-	return true
-}
-
-func runInstallStep() bool {
-	if done := installDep(cfgs); !done {
-		clog.Error("Fail installed!")
-		return false
-	}
-
-	clog.Success("Successfully installed ~")
+	clog.Success("Successfully built addon via npm install ~")
 	fmt.Println("")
 	return true
 }
@@ -233,32 +185,4 @@ func runMakeStep(args string) bool {
 	return true
 }
 
-func runMsvcStep(useVS bool, msvc32Vs bool) bool {
-	if !tools.IsWindowsOs() {
-		clog.Error("The \"msvc\" command is only supported on Windows.")
-		return false
-	}
-
-	clog.Info("Starting fix file ...")
-	compatible.FixCGOWithWindow(cfgs)
-	clog.Info("Fix file done ~")
-
-	clog.Info("Starting build dll ...")
-	if done := buildToDll(cfgs); !done {
-		clog.Error("Fail build dll!")
-		return false
-	}
-	clog.Success("Successfully build dll ~")
-	fmt.Println("")
-
-	clog.Info("Starting build lib ...")
-	if done := buildToMSVCLib(cfgs, useVS, msvc32Vs); !done {
-		clog.Error("Fail build lib!")
-		return false
-	}
-
-	clog.Success("Successfully build lib ~")
-	fmt.Println("")
-
-	return true
-}
+// Windows-specific build (msvc) removed; rely on build.js/npm install for windows builds.

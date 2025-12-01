@@ -165,10 +165,10 @@ function ensureTempFreeCStringFile(root) {
   const sourceDir = path.dirname(firstSrc);
   const tempPath = join(sourceDir, 'temp_gonode_helpers.go');
   if (fs.existsSync(tempPath)) {
-    return tempPath;
+    return { path: tempPath, created: false };
   }
   if (hasUserFreeCString(config.sources, root)) {
-    return '';
+    return { path: '', created: false };
   }
   const pkg = detectPackageName(firstSrc);
   const contents = [
@@ -185,7 +185,7 @@ function ensureTempFreeCStringFile(root) {
     '',
   ].join('\n');
   fs.writeFileSync(tempPath, contents, 'utf8');
-  return tempPath;
+  return { path: tempPath, created: true };
 }
 
 function buildGo() {
@@ -215,22 +215,41 @@ function buildGo() {
     args.push(join(workDir, src));
   }
   const tempFree = ensureTempFreeCStringFile(workDir);
-  if (tempFree) {
-    args.push(tempFree);
+  if (tempFree.path) {
+    args.push(tempFree.path);
   }
-  const result = spawnSync(goCmd, args, { cwd: workDir, stdio: 'inherit' });
-  if (result.error) {
-    const err = new Error('Failed to run Go build. ' + (result.error.message || String(result.error)) + ' (cwd=' + workDir + ')');
-    err.code = typeof result.error.code === 'number' ? result.error.code : 1;
-    err.errno = typeof result.error.code === 'string' ? result.error.code : undefined;
-    throw err;
-  }
-  if (result.status !== 0) {
-    const statusCode = typeof result.status === 'number' ? result.status : 1;
-    const err = new Error('go build -buildmode=c-archive failed with code ' + statusCode);
-    err.code = statusCode;
-    err.status = statusCode;
-    throw err;
+  let buildOk = false;
+  try {
+    const result = spawnSync(goCmd, args, { cwd: workDir, stdio: 'inherit' });
+    if (result.error) {
+      const err = new Error('Failed to run Go build. ' + (result.error.message || String(result.error)) + ' (cwd=' + workDir + ')');
+      err.code = typeof result.error.code === 'number' ? result.error.code : 1;
+      err.errno = typeof result.error.code === 'string' ? result.error.code : undefined;
+      throw err;
+    }
+    if (result.status !== 0) {
+      const statusCode = typeof result.status === 'number' ? result.status : 1;
+      const err = new Error('go build -buildmode=c-archive failed with code ' + statusCode);
+      err.code = statusCode;
+      err.status = statusCode;
+      throw err;
+    }
+    buildOk = true;
+  } finally {
+    if (tempFree.created && tempFree.path && fs.existsSync(tempFree.path)) {
+      try {
+        fs.unlinkSync(tempFree.path);
+      } catch {
+        // best effort
+      }
+    }
+    if (!buildOk) {
+      try {
+        fs.rmSync(buildDir, { recursive: true, force: true });
+      } catch {
+        // best effort
+      }
+    }
   }
 }
 

@@ -110,36 +110,7 @@ $ gonode build
 $ gonode build --args '-ldflags "-s -w"'
 ```
 
-### 3. install
-
-Same as the `npm install`， Install NodeJS dependencies.
-
-``` shell
-# Install dependencies
-gonode install
-
-# --config: Specify Profile
-$ gonode install --config demoaddon.json
-```
-
-### 4. msvc
-
-Select `dlltool.exe` in the Windows OS environment or `lib.exe`
-
-1.`dlltool.exe` of `MinGW`
-
-2.`lib.exe` of `Microsoft Visual c++ Build tools` or `Visual Studio`
-
-``` shell
-$ gonode msvc
-
-# --vs: use VS "lib.exe", default is "dlltool.exe" of MinGW
-# --32x: Supports 32-bit OS，default 64.
-# --config: Specify Profile
-$ gonode msvc --config demoaddon.json
-```
-
-### 5. make
+### 3. make
 
 Same as the `node-gyp configure && node-gyp build` command，Compile NodeJS Addon
 
@@ -154,7 +125,7 @@ Before using the "--npm-i" arg, ensure that the system has installed the npm pac
 $ gonode make --args '--debug'
 ```
 
-### 6. clean
+### 4. clean
 
 Clean the configured output directory when it exists.
 
@@ -165,19 +136,16 @@ $ gonode clean
 $ gonode clean --config demoaddon.json
 ```
 
-### 7. all
+### 5. all
 
-Run the full pipeline: clean -> generate -> build -> install -> (Windows only) msvc -> make.
+Run the full pipeline: clean -> generate -> build.
 
 ``` shell
 $ gonode all
 
 # --config: Specify Profile
-# --build-args: Args for go build
-# --make-args: Args for node-gyp build
-# --vs: Use VS \"lib.exe\" during msvc (Windows only)
-# --32x: Build 32-bit library with VS toolchain (Windows only)
-$ gonode all --config demoaddon.json --build-args '-ldflags "-s -w"' --make-args '--debug'
+# --build-args: Args forwarded to the Go build step
+$ gonode all --config demoaddon.json --build-args '-ldflags "-s -w"'
 ```
 
 <br/>
@@ -233,7 +201,7 @@ $ node-gyp -v
 
 `/demoaddon.go`
 
-gonode will auto-generate a temporary `_temp_free_c_string.go` (with `FreeCString`) if you don't define one. If you prefer to own the implementation, add the export below (no goaddon.json entry needed).
+gonode will auto-generate a temporary `temp_gonode_helpers.go` (with `FreeCString`) if you don't define one. If you prefer to own the implementation, add the export below (no goaddon.json entry needed).
 
 ``` go
 package main
@@ -276,20 +244,13 @@ $ gonode build
 ```
 
 
-#### 5. Install Dependencies
-``` shell
-# Save to the "./demoaddon/build" directory
-$ gonode install
-```
-
-
-#### 6. Compile Nodejs Addon
+#### 5. Compile Nodejs Addon
 ``` shell
 # Save to the "./demoaddon/build" directory
 $ gonode make
 ```
 
-#### 7. Create JS Test File
+#### 6. Create JS Test File
 
 `/demoaddon/test.js`
 
