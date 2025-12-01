@@ -10,6 +10,7 @@ func GenAsyncStringArgTypeCode(name string, index string) (string, string) {
   WgAddonArgInfo * wg_` + name + `Info = wg_addon->args[` + index + `];
   char * ` + name + ` = new char[wg_` + name + `Info->len];
   strcpy(` + name + `, (char *)wg_` + name + `Info->value);
+  wg_worker_allocs[` + index + `] = ` + name + `;
   // ---- `
 
 	endCode := tools.FormatCodeIndentLn(`delete [] `+name+`;`, 2)

@@ -1,23 +1,22 @@
 package async
 
 import (
+	"fmt"
 	"github.com/VastBlast/gonode/config"
 )
 
 // Generate async work execution code
 func genExecuteWorkCode(export config.Export, executeWorkName string, structDataName string, resultStructName string) string {
 	cleanupLabel := executeWorkName + "_cleanup"
-	handlerCode, endCode, sendFailureCleanup := genHandlerCode(export, cleanupLabel, resultStructName)
+	handlerCode, _, sendFailureCleanup := genHandlerCode(export, cleanupLabel, resultStructName)
+	allocSlots := len(export.Args)
 
 	code := `
 // -------- genExecuteworkCode
 static void ` + executeWorkName + `(napi_env wg_env, void* wg_data) {
   ` + structDataName + `* wg_addon = (` + structDataName + `*)wg_data;
-  napi_status wg_sts = napi_acquire_threadsafe_function(wg_addon->tsfn);
-  if (wg_sts != napi_ok) {
-    wg_catch_err_bg(wg_sts, "acquire threadsafe function");
-    return;
-  }
+  void* wg_worker_allocs[` + fmt.Sprintf("%d", allocSlots) + `] = {0};
+  bool wg_tsfn_acquired = false;
   auto wg_send_async_error = [&](const char* wg_msg_) {
     ` + resultStructName + `* wg_async_res_err = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_err));
     if (wg_async_res_err == NULL) {
@@ -44,6 +43,27 @@ static void ` + executeWorkName + `(napi_env wg_env, void* wg_data) {
       wg_catch_err_bg(wg_sts_err, "call threadsafe function");
     }
   };
+  auto wg_cleanup = [&]() {
+    if (wg_tsfn_acquired) {
+      napi_status wg_rel_sts = napi_release_threadsafe_function(wg_addon->tsfn, napi_tsfn_release);
+      wg_catch_err_bg(wg_rel_sts, "release threadsafe function");
+      wg_tsfn_acquired = false;
+    }
+    for (size_t i = 0; i < ` + fmt.Sprintf("%d", allocSlots) + `; i++) {
+      if (wg_worker_allocs[i] != NULL) {
+        delete [] (char*)wg_worker_allocs[i];
+        wg_worker_allocs[i] = NULL;
+      }
+    }
+  };
+  napi_status wg_sts = napi_acquire_threadsafe_function(wg_addon->tsfn);
+  if (wg_sts != napi_ok) {
+    wg_catch_err_bg(wg_sts, "acquire threadsafe function");
+    wg_send_async_error("acquire threadsafe function");
+    wg_cleanup();
+    return;
+  }
+  wg_tsfn_acquired = true;
   void* wg_res_ = NULL;
 #ifdef NAPI_CPP_EXCEPTIONS
   try {
@@ -56,13 +76,14 @@ static void ` + executeWorkName + `(napi_env wg_env, void* wg_data) {
     }
   }
 ` + cleanupLabel + `:
-  wg_sts = napi_release_threadsafe_function(wg_addon->tsfn, napi_tsfn_release);
-  wg_catch_err_bg(wg_sts, "release threadsafe function");` + endCode + `
+  wg_cleanup();
 #ifdef NAPI_CPP_EXCEPTIONS
   } catch (const std::exception& wg_ex) {
     wg_send_async_error(wg_ex.what());
+    wg_cleanup();
   } catch (...) {
     wg_send_async_error("native exception");
+    wg_cleanup();
   }
 #endif
 }`

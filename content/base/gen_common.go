@@ -10,7 +10,7 @@ func genWgAddonDataCode() string {
 //---------- genWgAddonArg ----------
 typedef struct {
   int type; // [1]char [2]int [3]float [4]double [5]bool
-  int len;
+  size_t len;
   void* value;
 } WgAddonArgInfo;`
 }
