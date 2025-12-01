@@ -6,7 +6,7 @@ import (
 
 const (
 	Name    = "gonode"
-	Version = "v1.2.1"
+	Version = "v1.2.2"
 )
 
 func main() {
