@@ -38,6 +38,7 @@ func GenAsyncCallReturnIntTypeCode(methodName string, argNames []string, varType
 	}
 	code := `
   // -------- genHandlerCode
+  ` + resultStructName + `* wg_async_res_success = NULL;
   const ` + typeStr + ` wg_tmp_res_ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
   ` + typeStr + `* wg_res_ptr_ = (` + typeStr + `*)malloc(sizeof(` + typeStr + `));
   if (wg_res_ptr_ == NULL) {
@@ -45,7 +46,7 @@ func GenAsyncCallReturnIntTypeCode(methodName string, argNames []string, varType
     goto ` + cleanupLabel + `;
   }
   *wg_res_ptr_ = wg_tmp_res_;
-  ` + resultStructName + `* wg_async_res_success = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_success));
+  wg_async_res_success = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_success));
   if (wg_async_res_success == NULL) {
     free(wg_res_ptr_);
     wg_send_async_error("alloc async result wrapper");

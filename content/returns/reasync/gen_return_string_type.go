@@ -29,6 +29,7 @@ func GenAsyncReturnStringTypeCode(resultStructName string) (string, string) {
 func GenAsyncCallReturnStringTypeCode(methodName string, argNames []string, cleanupLabel string, resultStructName string) string {
 	code := `
   // -------- genHandlerCode
+  ` + resultStructName + `* wg_async_res_success = NULL;
   const void* wg_res_src_ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
   const char* wg_src_str_ = static_cast<const char*>(wg_res_src_);
   size_t wg_src_len_ = wg_src_str_ ? strlen(wg_src_str_) : 0;
@@ -43,7 +44,7 @@ func GenAsyncCallReturnStringTypeCode(methodName string, argNames []string, clea
   }
   wg_res_buf_[wg_src_len_] = '\0';
   wg_free_cstring(wg_src_str_);
-  ` + resultStructName + `* wg_async_res_success = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_success));
+  wg_async_res_success = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_success));
   if (wg_async_res_success == NULL) {
     free(wg_res_buf_);
     wg_send_async_error("alloc async result wrapper");

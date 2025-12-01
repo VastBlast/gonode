@@ -46,6 +46,7 @@ func GenAsyncReturnDoubleTypeCode(resultStructName string) string {
 func GenAsyncCallReturnDoubleTypeCode(methodName string, argNames []string, cleanupLabel string, resultStructName string) string {
 	code := `
   // -------- genHandlerCode
+  ` + resultStructName + `* wg_async_res_success = NULL;
   const double wg_tmp_res_ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
   double* wg_res_ptr_ = (double*)malloc(sizeof(double));
   if (wg_res_ptr_ == NULL) {
@@ -53,7 +54,7 @@ func GenAsyncCallReturnDoubleTypeCode(methodName string, argNames []string, clea
     goto ` + cleanupLabel + `;
   }
   *wg_res_ptr_ = wg_tmp_res_;
-  ` + resultStructName + `* wg_async_res_success = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_success));
+  wg_async_res_success = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_success));
   if (wg_async_res_success == NULL) {
     free(wg_res_ptr_);
     wg_send_async_error("alloc async result wrapper");
