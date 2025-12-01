@@ -31,6 +31,16 @@ GoSlice wg_build_go_slice(void *data, int len, int cap){
 }`
 }
 
+func genFreeCStringCode() string {
+	return `
+// ------------- genFreeCString -----------
+static inline void wg_free_cstring(const char* wg_str) {
+  if (wg_str != NULL) {
+    FreeCString((char*)wg_str);
+  }
+}`
+}
+
 func genCatchErrCode() string {
 	return `
 // ------------- genCatchErr -----------
@@ -142,6 +152,7 @@ func GenBeforeCode(hasAsync bool) string {
 	code += genBuildGoSliceCode()
 	code += genArrayToStringCode()
 	code += genStringToArrayCode()
+	code += genFreeCStringCode()
 
 	code += genObjectToStringCode()
 	code += genStringToObject()

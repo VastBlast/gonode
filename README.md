@@ -233,11 +233,21 @@ $ node-gyp -v
 
 `/demoaddon.go`
 
+Add the required `FreeCString` export (no goaddon.json entry needed) so gonode can release any `C.CString` values on the Go side before handing data back to Node.
+
 ``` go
 package main
+
+// #include <stdlib.h>
 import "C"
+import "unsafe"
 
 // notice：//export xxxx is necessary
+
+//export FreeCString
+func FreeCString(str *C.char) {
+	C.free(unsafe.Pointer(str))
+}
 
 //export Hello
 func Hello(_name *C.char) *C.char {
@@ -404,29 +414,42 @@ When there are multiple levels when returning, it is not recommended to use in t
 
 `/demoaddon.go`
 
+Keep exporting `FreeCString` so the generated binding can ask Go to free returned C strings.
+
 ``` go
 package main
+
+// #include <stdlib.h>
 import "C"
+import (
+	"time"
+	"unsafe"
+)
+
+//export FreeCString
+func FreeCString(str *C.char) {
+	C.free(unsafe.Pointer(str))
+}
 
 //export Hello
 func Hello(_name *C.char) *C.char {
 	// args is string type，return string type
 	name := C.GoString(_name)
-	
+
 	res := "hello"
 	ch := make(chan bool)
 
 	go func() {
-	    // Time consuming task processing
-	    time.Sleep(time.Duration(2) * time.Second)
+		// Time consuming task processing
+		time.Sleep(time.Duration(2) * time.Second)
 		if len(name) > 0 {
-	        res += "," + name
-	    }   
+			res += "," + name
+		}
 		ch <- true
 	}()
 
 	<-ch
-	
+
 	return C.CString(res)
 }
 ```
@@ -481,29 +504,42 @@ console.log('>>> ', res)
 
 `/demoaddon.go`
 
+Ensure `FreeCString` stays exported so Go can release any strings you return to JS.
+
 ``` go
 package main
+
+// #include <stdlib.h>
 import "C"
+import (
+	"time"
+	"unsafe"
+)
+
+//export FreeCString
+func FreeCString(str *C.char) {
+	C.free(unsafe.Pointer(str))
+}
 
 //export Hello
 func Hello(_name *C.char, cbsFnName *C.char) *C.char {
 	// args is string type，return string type
 	name := C.GoString(_name)
-	
+
 	res := "hello"
 	ch := make(chan bool)
 
-    go func() {
-	    // Time consuming task processing
+	go func() {
+		// Time consuming task processing
 		time.Sleep(time.Duration(2) * time.Second)
 		if len(name) > 0 {
-	        res += "," + name
-	    }   
+			res += "," + name
+		}
 		ch <- true
 	}()
 
 	<-ch
-	
+
 	return C.CString(res)
 }
 ```

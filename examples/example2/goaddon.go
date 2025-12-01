@@ -1,10 +1,17 @@
 package main
 
+// #include <stdlib.h>
 import "C"
 import (
 	"encoding/json"
 	"time"
+	"unsafe"
 )
+
+//export FreeCString
+func FreeCString(str *C.char) {
+	C.free(unsafe.Pointer(str))
+}
 
 func durationFromMS(ms int32) time.Duration {
 	if ms < 0 {

@@ -11,7 +11,7 @@ import (
 func GenHandleReturnStringCode(method string, args []string, preCode string) string {
 	code := tools.FormatCodeIndentLn(`const char* wg_raw_res_ = `+method+`(`+strings.Join(args, ",")+`);`, 2)
 	code += tools.FormatCodeIndentLn(`string wg_res_ = wg_raw_res_ ? wg_raw_res_ : "";`, 2)
-	code += tools.FormatCodeIndentLn(`if (wg_raw_res_ != NULL) { free((void*)wg_raw_res_); }`, 2)
+	code += tools.FormatCodeIndentLn(`wg_free_cstring(wg_raw_res_);`, 2)
 
 	code += preCode
 	code += tools.FormatCodeIndentLn(`return String::New(wg_env, wg_res_);`, 2)

@@ -1,11 +1,18 @@
 package main
 
+// #include <stdlib.h>
 import "C"
 import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"unsafe"
 )
+
+//export FreeCString
+func FreeCString(str *C.char) {
+	C.free(unsafe.Pointer(str))
+}
 
 //export IntSum32
 func IntSum32(x, y int32) C.int {

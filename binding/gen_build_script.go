@@ -44,6 +44,9 @@ func GenBuildScriptFile(cfgs config.Config, filename string, moduleRoot string) 
 	for _, export := range cfgs.Exports {
 		exportNames = append(exportNames, export.Name)
 	}
+	if !tools.InSlice(exportNames, "FreeCString") {
+		exportNames = append(exportNames, "FreeCString")
+	}
 	exportsJSON, err := json.Marshal(exportNames)
 	if err != nil {
 		return false

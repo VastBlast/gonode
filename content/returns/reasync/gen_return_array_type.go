@@ -13,7 +13,7 @@ func GenAsyncReturnArrayTypeCode() string {
   }`, 2)
 }
 
-func GenAsyncCallReturnArrayTypeCode(methodName string, argNames []string) string {
+func GenAsyncCallReturnArrayTypeCode(methodName string, argNames []string, cleanupLabel string) string {
 	code := `
   // -------- genHandlerCode
   const char* wg_src_res_ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
@@ -21,12 +21,13 @@ func GenAsyncCallReturnArrayTypeCode(methodName string, argNames []string) strin
   char* wg_res_ = (char*)malloc(wg_src_len_ + 1);
   if (wg_res_ == NULL) {
     wg_catch_err_bg(napi_generic_failure, "alloc async array result");
-    return;
+    goto ` + cleanupLabel + `;
   }
   if (wg_src_len_ > 0) {
     memcpy(wg_res_, wg_src_res_, wg_src_len_);
   }
-  wg_res_[wg_src_len_] = '\0';`
+  wg_res_[wg_src_len_] = '\0';
+  wg_free_cstring(wg_src_res_);`
 	return code
 }
 

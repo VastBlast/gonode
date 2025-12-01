@@ -57,7 +57,7 @@ func genHandlerArgCode(arg config.Arg, index int) (string, string) {
 }
 
 // Generate handler logic
-func genHandlerCode(export config.Export) (string, string) {
+func genHandlerCode(export config.Export, cleanupLabel string) (string, string) {
 	methodName := export.Name
 	returnType := export.ReturnType
 
@@ -72,7 +72,7 @@ func genHandlerCode(export config.Export) (string, string) {
 	}
 
 	if returnType == "string" {
-		code += reasync.GenAsyncCallReturnStringTypeCode(methodName, argNames)
+		code += reasync.GenAsyncCallReturnStringTypeCode(methodName, argNames, cleanupLabel)
 	} else if returnType == "boolean" {
 		code += reasync.GenAsyncCallReturnBooleanTypeCode(methodName, argNames)
 	} else if returnType == "int" {
@@ -88,9 +88,9 @@ func genHandlerCode(export config.Export) (string, string) {
 	} else if returnType == "double" {
 		code += reasync.GenAsyncCallReturnDoubleTypeCode(methodName, argNames)
 	} else if returnType == "array" {
-		code += reasync.GenAsyncCallReturnArrayTypeCode(methodName, argNames)
+		code += reasync.GenAsyncCallReturnArrayTypeCode(methodName, argNames, cleanupLabel)
 	} else if returnType == "object" {
-		code += reasync.GenAsyncCallReturnObjectTypeCode(methodName, argNames)
+		code += reasync.GenAsyncCallReturnObjectTypeCode(methodName, argNames, cleanupLabel)
 	} else if returnType == "arraybuffer" {
 		code += reasync.GenAsyncCallReturnArrayBufferTypeCode(methodName, argNames)
 	} else {
