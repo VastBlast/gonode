@@ -21,6 +21,11 @@ func GenAsyncBooleanInputArgTypeCode(name string, index string) string {
     ` + name + ` =	wg_v` + index + `.As<Boolean>();
   }
   wg_addon->args[` + index + `] = (WgAddonArgInfo*)malloc(sizeof(*wg_addon->args[` + index + `]));
+  if (wg_addon->args[` + index + `] == NULL) {
+    napi_throw_error(wg_env, NULL, "alloc async arg info");
+    wg_cleanup();
+    return NULL;
+  }
   wg_addon->args[` + index + `]->type=5;
   wg_addon->args[` + index + `]->value=(void *)` + name + `;
   // ---- `

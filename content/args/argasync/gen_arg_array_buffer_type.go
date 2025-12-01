@@ -29,6 +29,11 @@ func GenAsyncArrayBufferInputArgTypeCode(name string, index string) (string, str
   }
   char *` + name + ` = (char *)wg_` + name + `.Data();
   wg_addon->args[` + index + `] = (WgAddonArgInfo*)malloc(sizeof(*wg_addon->args[` + index + `]));
+  if (wg_addon->args[` + index + `] == NULL) {
+    napi_throw_error(wg_env, NULL, "alloc async arg info");
+    wg_cleanup();
+    return NULL;
+  }
   wg_addon->args[` + index + `]->type=1;
   wg_addon->args[` + index + `]->len=strlen(` + name + `);
   wg_addon->args[` + index + `]->value=(void *)` + name + `;

@@ -21,6 +21,11 @@ func GenAsyncFloatInputArgTypeCode(name string, index string) string {
     ` + name + ` =	wg_v` + index + `.As<Number>().FloatValue();
   }
   wg_addon->args[` + index + `] = (WgAddonArgInfo*)malloc(sizeof(*wg_addon->args[` + index + `]));
+  if (wg_addon->args[` + index + `] == NULL) {
+    napi_throw_error(wg_env, NULL, "alloc async arg info");
+    wg_cleanup();
+    return NULL;
+  }
   wg_addon->args[` + index + `]->type=3;
   wg_addon->args[` + index + `]->value=(void *)` + name + `;
   // ---- `

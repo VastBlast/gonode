@@ -42,6 +42,10 @@ static napi_value ` + workName + `(napi_env wg_env, napi_callback_info wg_info) 
   napi_value wg_work_name;
   napi_status wg_sts;
   ` + structDataName + `* wg_addon = (` + structDataName + `*)malloc(sizeof(*wg_addon));
+  if (wg_addon == NULL) {
+    napi_throw_error(wg_env, NULL, "alloc async data");
+    return NULL;
+  }
   wg_addon->work = NULL;
   wg_addon->argc = wg_expected_argc;
   for (size_t i = 0; i < wg_expected_argc; i++) {

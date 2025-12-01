@@ -26,3 +26,4 @@ _remark.md
 *.sln
 *.sw?
 /.cache
+/.gocache

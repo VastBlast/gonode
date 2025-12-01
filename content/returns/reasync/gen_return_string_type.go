@@ -25,6 +25,7 @@ func GenAsyncCallReturnStringTypeCode(methodName string, argNames []string, clea
   size_t wg_src_len_ = wg_src_str_ ? strlen(wg_src_str_) : 0;
   char* wg_res_ = (char*)malloc(wg_src_len_ + 1);
   if (wg_res_ == NULL) {
+    wg_free_cstring(wg_src_str_);
     wg_catch_err_bg(napi_generic_failure, "alloc async result");
     goto ` + cleanupLabel + `;
   }

@@ -35,6 +35,12 @@ func GenAsyncFuncitonInputArgTypeCode(name string, index string) (string, string
   char * ` + name + ` = new char[wg__` + name + `.length() + 1];
   strcpy(` + name + `, wg__` + name + `.c_str());
   wg_addon->args[` + index + `] = (WgAddonArgInfo*)malloc(sizeof(*wg_addon->args[` + index + `]));
+  if (wg_addon->args[` + index + `] == NULL) {
+    delete [] ` + name + `;
+    napi_throw_error(wg_env, NULL, "alloc async arg info");
+    wg_cleanup();
+    return NULL;
+  }
   wg_addon->args[` + index + `]->type=1;
   wg_addon->args[` + index + `]->len=wg__` + name + `.length() + 1;
   wg_addon->args[` + index + `]->value=(void *)` + name + `;
