@@ -10,10 +10,16 @@ import (
 // Run npm install inside the generated bindings directory to trigger build.js.
 func runNpmInstall(cfgs config.Config, args string) bool {
 	bindingsDir := tools.FormatDirPath(cfgs.OutPut)
-	cmdStr := "cd " + bindingsDir + " && npm install"
+
+	cmdStr := "cd " + bindingsDir + " && "
 	if len(args) > 0 {
-		cmdStr += " " + args
+		if tools.IsWindowsOs() {
+			cmdStr += "set GO_BUILD_ARGS=" + args + " && "
+		} else {
+			cmdStr += "GO_BUILD_ARGS='" + args + "' "
+		}
 	}
+	cmdStr += "npm install"
 
 	clog.Info("Running npm install in bindings directory ...")
 	msg, err := cmd.RunCommand("./", cmdStr)

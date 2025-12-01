@@ -135,16 +135,6 @@ function tryRun(cmd, args) {
   return { ok: true, missing: false };
 }
 
-function detectPackageName(filePath) {
-  try {
-    const src = fs.readFileSync(filePath, 'utf8');
-    const match = src.match(/^\s*package\s+([^\s]+)/m);
-    return match ? match[1] : 'main';
-  } catch {
-    return 'main';
-  }
-}
-
 function hasUserFreeCString(sourcePaths, root) {
   for (const src of sourcePaths) {
     const full = path.isAbsolute(src) ? src : join(root, src);
@@ -170,7 +160,7 @@ function ensureTempFreeCStringFile(root) {
   if (hasUserFreeCString(config.sources, root)) {
     return { path: '', created: false };
   }
-  const pkg = detectPackageName(firstSrc);
+  const pkg = 'main';
   const contents = [
     'package ' + pkg,
     '',
@@ -210,7 +200,8 @@ function buildGo() {
     throw new Error('Go sources are missing from this package. Ensure the following files are published: ' + missingSources.join(', '));
   }
 
-  const args = ['build', '-buildmode=c-archive', '-o', join(buildDir, config.name + '.a')];
+  const goBuildArgs = (process.env.GO_BUILD_ARGS || '').trim().split(/\s+/).filter(Boolean);
+  const args = ['build', '-buildmode=c-archive', ...goBuildArgs, '-o', join(buildDir, config.name + '.a')];
   for (const src of config.sources) {
     args.push(join(workDir, src));
   }
