@@ -21,33 +21,41 @@ void ` + funName + `(Env env, Object exports){
 }
 
 // Parse result arguments
-func genResultParseCode(returnType string) (string, string) {
+func genResultParseCode(returnType string, resultStructName string) (string, string) {
 	code := ""
 	preCode := ""
+	code += reasync.GenAsyncReturnCommonCode(resultStructName)
 	if returnType == "string" {
-		ccode, pcode := reasync.GenAsyncReturnStringTypeCode()
+		ccode, pcode := reasync.GenAsyncReturnStringTypeCode(resultStructName)
 		code += ccode
 		preCode += pcode
 	} else if returnType == "boolean" {
-		code = reasync.GenAsyncReturnBooleanTypeCode()
+		code += reasync.GenAsyncReturnBooleanTypeCode(resultStructName)
 	} else if returnType == "int" {
-		code += reasync.GenAsyncReturnIntTypeCode("int32")
+		code += reasync.GenAsyncReturnIntTypeCode("int32", resultStructName)
 	} else if returnType == "int32" {
-		code += reasync.GenAsyncReturnIntTypeCode("int32")
+		code += reasync.GenAsyncReturnIntTypeCode("int32", resultStructName)
 	} else if returnType == "int64" {
-		code += reasync.GenAsyncReturnIntTypeCode("int64")
+		code += reasync.GenAsyncReturnIntTypeCode("int64", resultStructName)
 	} else if returnType == "uint32" {
-		code += reasync.GenAsyncReturnIntTypeCode("unit32")
+		code += reasync.GenAsyncReturnIntTypeCode("unit32", resultStructName)
 	} else if returnType == "float" {
-		code += reasync.GenAsyncReturnFloatTypeCode()
+		code += reasync.GenAsyncReturnFloatTypeCode(resultStructName)
 	} else if returnType == "double" {
-		code += reasync.GenAsyncReturnDoubleTypeCode()
+		code += reasync.GenAsyncReturnDoubleTypeCode(resultStructName)
 	} else if returnType == "array" {
-		code += reasync.GenAsyncReturnArrayTypeCode()
+		code += reasync.GenAsyncReturnArrayTypeCode(resultStructName)
 	} else if returnType == "object" {
-		code += reasync.GenAsyncReturnObjectTypeCode()
+		code += reasync.GenAsyncReturnObjectTypeCode(resultStructName)
+	} else if returnType == "arraybuffer" {
+		code += reasync.GenAsyncReturnArrayBufferTypeCode(resultStructName)
 	} else {
-		code = tools.FormatCodeIndentLn(`(void)data;`, 2)
+		code += tools.FormatCodeIndentLn(`if (wg_async_res != NULL && wg_async_res->err != NULL) {
+    free((void*)wg_async_res->err);
+  }
+  if (wg_async_res != NULL) {
+    free(wg_async_res);
+  }`, 2)
 	}
 	/*
 		 else if returnType == "arraybuffer" {
@@ -58,7 +66,7 @@ func genResultParseCode(returnType string) (string, string) {
 	return code, preCode
 }
 
-func genStructCallbackCode(export config.Export, structName string) string {
+func genStructCallbackCode(export config.Export, structName string, resultStructName string) string {
 	argLen := len(export.Args)
 	code := `
 typedef struct{
@@ -66,7 +74,13 @@ typedef struct{
   napi_threadsafe_function tsfn;
   int argc;
   WgAddonArgInfo *args[` + fmt.Sprintf("%d", argLen) + `];
-} ` + structName + `;`
+} ` + structName + `;
+
+typedef struct{
+  bool is_error;
+  void* data;
+  char* err;
+} ` + resultStructName + `;`
 	return code
 }
 
@@ -79,12 +93,13 @@ func GenAsyncCallbackCode(export config.Export) (string, string) {
 	executeworkName := "wg_execute_work" + strings.ToLower(methodName)
 	jsCallbackName := "wg_js_callback_" + strings.ToLower(methodName)
 	structDataName := "WgAddonData" + methodName
+	resultStructName := "WgAsyncResult" + methodName
 
 	code := `
 // [` + methodName + `] +++++++++++++++++++++++++++++++++ start`
-	code += genStructCallbackCode(export, structDataName)
-	code += genJsCallbackCode(export, jsCallbackName)
-	code += genExecuteWorkCode(export, executeworkName, structDataName)
+	code += genStructCallbackCode(export, structDataName, resultStructName)
+	code += genJsCallbackCode(export, jsCallbackName, resultStructName)
+	code += genExecuteWorkCode(export, executeworkName, structDataName, resultStructName)
 	code += genWorkCompleteCode(workCompleteName, structDataName)
 	code += genWorkThreadCode(
 		export,

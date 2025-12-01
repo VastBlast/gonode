@@ -5,46 +5,64 @@ import (
 	"strings"
 )
 
-func GenAsyncReturnIntTypeCode(varType string) string {
-	code := ""
-
-	// 	int32 int64 uint32
+func GenAsyncReturnIntTypeCode(varType string, resultStructName string) string {
+	_ = resultStructName
+	typeStr := "int"
 	if varType == "int64" {
-		code = tools.FormatCodeIndentLn(`const long long int wg_res_ = (long long int)(intptr_t)wg_data;`, 2)
+		typeStr = "long long int"
 	} else if varType == "uint32" {
-		code = tools.FormatCodeIndentLn(`const unsigned long wg_res_ = (unsigned long)(intptr_t)wg_data;`, 2)
-	} else {
-		code = tools.FormatCodeIndentLn(`const int wg_res_ = (int)(intptr_t)wg_data;`, 2)
+		typeStr = "unsigned long"
 	}
-
-	return code
+	return tools.FormatCodeIndentLn(``+typeStr+` wg_res_ = 0;
+  if (!wg_is_error && wg_async_res != NULL) {
+    `+typeStr+`* wg_res_ptr_ = (`+typeStr+`*)wg_async_res->data;
+    wg_res_ = wg_res_ptr_ ? *wg_res_ptr_ : 0;
+    if (wg_res_ptr_ != NULL) {
+      free(wg_res_ptr_);
+    }
+  }
+  if (wg_async_res != NULL && wg_async_res->err != NULL) {
+    free((void*)wg_async_res->err);
+  }
+  if (wg_async_res != NULL) {
+    free(wg_async_res);
+  }`, 2)
 }
 
-func GenAsyncCallReturnIntTypeCode(methodName string, argNames []string, varType string) string {
-	code := ""
-	// 	int64 uint32 int32
-	//  int64_t uint32_t int32_t
+func GenAsyncCallReturnIntTypeCode(methodName string, argNames []string, varType string, cleanupLabel string, resultStructName string) string {
+	typeStr := "int"
 	if varType == "int64" {
-		code = `
-  // -------- genHandlerCode
-  const const long long wg_res__ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
-  void * wg_res_ = (void *)(intptr_t)wg_res__;`
+		typeStr = "long long int"
 	} else if varType == "uint32" {
-		code = `
-  // -------- genHandlerCode
-  const const unsigned long wg_res__ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
-  void * wg_res_ = (void *)(intptr_t)wg_res__;`
-	} else {
-		code = `
-  // -------- genHandlerCode
-  const int wg_res__ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
-  void * wg_res_ = (void *)(intptr_t)wg_res__;`
+		typeStr = "unsigned long"
 	}
+	code := `
+  // -------- genHandlerCode
+  const ` + typeStr + ` wg_tmp_res_ = ` + methodName + `(` + strings.Join(argNames, ",") + `);
+  ` + typeStr + `* wg_res_ptr_ = (` + typeStr + `*)malloc(sizeof(` + typeStr + `));
+  if (wg_res_ptr_ == NULL) {
+    wg_send_async_error("alloc async result");
+    goto ` + cleanupLabel + `;
+  }
+  *wg_res_ptr_ = wg_tmp_res_;
+  ` + resultStructName + `* wg_async_res_success = (` + resultStructName + `*)malloc(sizeof(*wg_async_res_success));
+  if (wg_async_res_success == NULL) {
+    free(wg_res_ptr_);
+    wg_send_async_error("alloc async result wrapper");
+    goto ` + cleanupLabel + `;
+  }
+  wg_async_res_success->is_error = false;
+  wg_async_res_success->data = (void*)wg_res_ptr_;
+  wg_async_res_success->err = NULL;
+  wg_res_ = (void*)wg_async_res_success;`
 
 	return code
 }
 
 func GenAsyncCallbackArgIntTypeCode() string {
-	return `Number wg_int_ = Number::New(wg_env, wg_res_);
-    napi_value wg_argv[] = { wg_int_ };`
+	return `napi_value wg_result = wg_env_scope.Null();
+    if (!wg_is_error) {
+      Number wg_int_ = Number::New(wg_env_scope, wg_res_);
+      wg_result = wg_int_;
+    }`
 }

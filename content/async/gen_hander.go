@@ -57,7 +57,7 @@ func genHandlerArgCode(arg config.Arg, index int) (string, string) {
 }
 
 // Generate handler logic
-func genHandlerCode(export config.Export, cleanupLabel string) (string, string, string) {
+func genHandlerCode(export config.Export, cleanupLabel string, resultStructName string) (string, string, string) {
 	methodName := export.Name
 	returnType := export.ReturnType
 
@@ -73,39 +73,67 @@ func genHandlerCode(export config.Export, cleanupLabel string) (string, string, 
 	}
 
 	if returnType == "string" {
-		code += reasync.GenAsyncCallReturnStringTypeCode(methodName, argNames, cleanupLabel)
+		code += reasync.GenAsyncCallReturnStringTypeCode(methodName, argNames, cleanupLabel, resultStructName)
 		sendFailCleanup = `
     if (wg_res_ != NULL) {
-      free(wg_res_);
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
     }`
 	} else if returnType == "boolean" {
-		code += reasync.GenAsyncCallReturnBooleanTypeCode(methodName, argNames)
-	} else if returnType == "int" {
-		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "int32")
-	} else if returnType == "int32" {
-		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "int32")
-	} else if returnType == "int64" {
-		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "int64")
-	} else if returnType == "uint32" {
-		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "uint32")
-	} else if returnType == "float" {
-		code += reasync.GenAsyncCallReturnFloatTypeCode(methodName, argNames)
-	} else if returnType == "double" {
-		code += reasync.GenAsyncCallReturnDoubleTypeCode(methodName, argNames)
-	} else if returnType == "array" {
-		code += reasync.GenAsyncCallReturnArrayTypeCode(methodName, argNames, cleanupLabel)
+		code += reasync.GenAsyncCallReturnBooleanTypeCode(methodName, argNames, cleanupLabel, resultStructName)
 		sendFailCleanup = `
     if (wg_res_ != NULL) {
-      free(wg_res_);
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
+    }`
+	} else if returnType == "int" {
+		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "int32", cleanupLabel, resultStructName)
+		sendFailCleanup = `
+    if (wg_res_ != NULL) {
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
+    }`
+	} else if returnType == "int32" {
+		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "int32", cleanupLabel, resultStructName)
+		sendFailCleanup = `
+    if (wg_res_ != NULL) {
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
+    }`
+	} else if returnType == "int64" {
+		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "int64", cleanupLabel, resultStructName)
+		sendFailCleanup = `
+    if (wg_res_ != NULL) {
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
+    }`
+	} else if returnType == "uint32" {
+		code += reasync.GenAsyncCallReturnIntTypeCode(methodName, argNames, "uint32", cleanupLabel, resultStructName)
+		sendFailCleanup = `
+    if (wg_res_ != NULL) {
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
+    }`
+	} else if returnType == "float" {
+		code += reasync.GenAsyncCallReturnFloatTypeCode(methodName, argNames, cleanupLabel, resultStructName)
+		sendFailCleanup = `
+    if (wg_res_ != NULL) {
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
+    }`
+	} else if returnType == "double" {
+		code += reasync.GenAsyncCallReturnDoubleTypeCode(methodName, argNames, cleanupLabel, resultStructName)
+		sendFailCleanup = `
+    if (wg_res_ != NULL) {
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
+    }`
+	} else if returnType == "array" {
+		code += reasync.GenAsyncCallReturnArrayTypeCode(methodName, argNames, cleanupLabel, resultStructName)
+		sendFailCleanup = `
+    if (wg_res_ != NULL) {
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
     }`
 	} else if returnType == "object" {
-		code += reasync.GenAsyncCallReturnObjectTypeCode(methodName, argNames, cleanupLabel)
+		code += reasync.GenAsyncCallReturnObjectTypeCode(methodName, argNames, cleanupLabel, resultStructName)
 		sendFailCleanup = `
     if (wg_res_ != NULL) {
-      free(wg_res_);
+      ` + reasync.GenAsyncFreeResultWrapperCode(returnType, resultStructName) + `
     }`
 	} else if returnType == "arraybuffer" {
-		code += reasync.GenAsyncCallReturnArrayBufferTypeCode(methodName, argNames)
+		code += reasync.GenAsyncCallReturnArrayBufferTypeCode(methodName, argNames, cleanupLabel, resultStructName)
 	} else {
 		code += tools.FormatCodeIndentLn(`const void* res =`+methodName+`();`, 4)
 	}
