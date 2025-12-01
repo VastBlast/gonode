@@ -135,6 +135,59 @@ function tryRun(cmd, args) {
   return { ok: true, missing: false };
 }
 
+function detectPackageName(filePath) {
+  try {
+    const src = fs.readFileSync(filePath, 'utf8');
+    const match = src.match(/^\s*package\s+([^\s]+)/m);
+    return match ? match[1] : 'main';
+  } catch {
+    return 'main';
+  }
+}
+
+function hasUserFreeCString(sourcePaths, root) {
+  for (const src of sourcePaths) {
+    const full = path.isAbsolute(src) ? src : join(root, src);
+    try {
+      const content = fs.readFileSync(full, 'utf8');
+      if (content.includes('FreeCString')) {
+        return true;
+      }
+    } catch {
+      continue;
+    }
+  }
+  return false;
+}
+
+function ensureTempFreeCStringFile(root) {
+  const firstSrc = path.isAbsolute(config.sources[0]) ? config.sources[0] : join(root, config.sources[0]);
+  const sourceDir = path.dirname(firstSrc);
+  const tempPath = join(sourceDir, 'temp_gonode_helpers.go');
+  if (fs.existsSync(tempPath)) {
+    return tempPath;
+  }
+  if (hasUserFreeCString(config.sources, root)) {
+    return '';
+  }
+  const pkg = detectPackageName(firstSrc);
+  const contents = [
+    'package ' + pkg,
+    '',
+    '// #include <stdlib.h>',
+    'import "C"',
+    'import "unsafe"',
+    '',
+    '//export FreeCString',
+    'func FreeCString(str *C.char) {',
+    '\tC.free(unsafe.Pointer(str))',
+    '}',
+    '',
+  ].join('\n');
+  fs.writeFileSync(tempPath, contents, 'utf8');
+  return tempPath;
+}
+
 function buildGo() {
   console.log('Building Go c-archive ...');
   const goCheck = tryRun(goCmd, ['version']);
@@ -160,6 +213,10 @@ function buildGo() {
   const args = ['build', '-buildmode=c-archive', '-o', join(buildDir, config.name + '.a')];
   for (const src of config.sources) {
     args.push(join(workDir, src));
+  }
+  const tempFree = ensureTempFreeCStringFile(workDir);
+  if (tempFree) {
+    args.push(tempFree);
   }
   const result = spawnSync(goCmd, args, { cwd: workDir, stdio: 'inherit' });
   if (result.error) {

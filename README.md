@@ -233,7 +233,7 @@ $ node-gyp -v
 
 `/demoaddon.go`
 
-Add the required `FreeCString` export (no goaddon.json entry needed) so gonode can release any `C.CString` values on the Go side before handing data back to Node.
+gonode will auto-generate a temporary `_temp_free_c_string.go` (with `FreeCString`) if you don't define one. If you prefer to own the implementation, add the export below (no goaddon.json entry needed).
 
 ``` go
 package main
@@ -414,7 +414,7 @@ When there are multiple levels when returning, it is not recommended to use in t
 
 `/demoaddon.go`
 
-Keep exporting `FreeCString` so the generated binding can ask Go to free returned C strings.
+If you skip defining `FreeCString`, gonode will inject a temporary helper for you; add this export only if you want to supply your own implementation.
 
 ``` go
 package main
@@ -504,7 +504,7 @@ console.log('>>> ', res)
 
 `/demoaddon.go`
 
-Ensure `FreeCString` stays exported so Go can release any strings you return to JS.
+You can omit `FreeCString` and let gonode inject the helper automatically, or add the export yourself if you prefer explicit control.
 
 ``` go
 package main
