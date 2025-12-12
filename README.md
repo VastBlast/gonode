@@ -1,3 +1,5 @@
+# Do not use this in production. I recommend you use [Koffi](https://github.com/Koromix/koffi) to develop a node bindings for a Go project.
+
 <div align="center">
 <img width="120" style="padding-top: 50px" src="http://47.104.180.148/gonode/gonode_logo.svg"/>
 <h1 style="margin: 0; padding: 0">Gonode</h1>
